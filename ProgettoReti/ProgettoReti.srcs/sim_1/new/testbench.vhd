@@ -90,7 +90,7 @@ architecture projecttb of project_tb is
 	-- Processo per gestione memoria
     MEM : process(tb_clk)
     begin
-        if tb_clk'event and tb_clk = '1' then
+        if(tb_clk'event and tb_clk = '1') then
             if(tb_rst = '1' or ram_set = '1') then
                 mem_o_data <= mem_i_data after 2 ns;
                 if(count = 0) then
@@ -550,7 +550,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(17 , 8)) report "TEST 0 FALLITO" severity failure;
 	 
 	    -- test 1 (aggiunto centroide 8 alla stessa distanza)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		tb_rst <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -568,7 +568,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(145 , 8)) report "TEST 1 FALLITO" severity failure;
 		
 		-- test 2 (maschera di input 0000'0000)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		tb_rst <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -586,7 +586,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(0 , 8)) report "TEST 2 FALLITO" severity failure;
 		
 		-- test 3 (tutti i punti a distanza 0)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		tb_rst <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -604,7 +604,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(255 , 8)) report "TEST 3 FALLITO" severity failure;
 	 
         -- test 4 (tutti i centroidi molto distanti, 9 bit nella distanza)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		tb_rst <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -622,7 +622,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(129 , 8)) report "TEST 4 FALLITO" severity failure;
 	 
         -- test 5 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		tb_rst <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -640,7 +640,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(128 , 8)) report "TEST 5 FALLITO" severity failure;
  
         -- test 6 (tutti i punti a distanza massima)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		tb_rst <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -658,7 +658,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(255 , 8)) report "TEST 6 FALLITO" severity failure;
 	 
         -- test 7 (uguale a test 1 ma senza segnale di reset)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -676,7 +676,7 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(145 , 8)) report "TEST 7 FALLITO" severity failure;
 		
 		-- test 8  (uguale a test 2 ma senza segnale di reset)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -691,10 +691,10 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00000000
-		assert RAM(19) = std_logic_vector(to_unsigned(0 , 8)) report "TEST 2 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(0 , 8)) report "TEST 8 FALLITO" severity failure;
 		
 		-- test 9  (uguale a test 3 ma senza segnale di reset)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -709,10 +709,10 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 11111111
-		assert RAM(19) = std_logic_vector(to_unsigned(255 , 8)) report "TEST 3 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(255 , 8)) report "TEST 9 FALLITO" severity failure;
 	 
         -- test 10  (uguale a test 4 ma senza segnale di reset)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -727,10 +727,10 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 10000001
-		assert RAM(19) = std_logic_vector(to_unsigned(129 , 8)) report "TEST 4 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(129 , 8)) report "TEST 10 FALLITO" severity failure;
 	 
         -- test 11  (uguale a test 5 ma senza segnale di reset)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -745,10 +745,10 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 10000000
-		assert RAM(19) = std_logic_vector(to_unsigned(128 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(128 , 8)) report "TEST 11 FALLITO" severity failure;
  
         -- test 12 (uguale a test 6 ma senza segnale di reset)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -763,14 +763,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 11111111
-		assert RAM(19) = std_logic_vector(to_unsigned(255 , 8)) report "TEST 6 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(255 , 8)) report "TEST 12 FALLITO" severity failure;
 	 
         -- test 13 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -781,14 +781,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 01000000
-		assert RAM(19) = std_logic_vector(to_unsigned(64 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(64 , 8)) report "TEST 13 FALLITO" severity failure;
  
         -- test 14 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -799,14 +799,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00100000
-		assert RAM(19) = std_logic_vector(to_unsigned(32 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(32 , 8)) report "TEST 14 FALLITO" severity failure;
  
         -- test 15 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -817,14 +817,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00010000
-		assert RAM(19) = std_logic_vector(to_unsigned(16 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(16 , 8)) report "TEST 15 FALLITO" severity failure;
 
         -- test 16 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -835,14 +835,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00001000
-		assert RAM(19) = std_logic_vector(to_unsigned(8 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(8 , 8)) report "TEST 16 FALLITO" severity failure;
  	 
         -- test 17 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -853,14 +853,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00000100
-		assert RAM(19) = std_logic_vector(to_unsigned(4 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(4 , 8)) report "TEST 17 FALLITO" severity failure;
 
         -- test 18 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -871,14 +871,14 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00000010
-		assert RAM(19) = std_logic_vector(to_unsigned(2 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(2 , 8)) report "TEST 18 FALLITO" severity failure;
 
         -- test 19 (solo un centroide da considerare per maschera)
-		wait for 100 ns;
+		wait for 50 ns;
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '1';
+		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
-		tb_rst <= '0';
+		ram_set <= '0';
 		wait for c_CLOCK_PERIOD;
 		tb_start <= '1';
 		wait for c_CLOCK_PERIOD;
@@ -889,7 +889,7 @@ architecture projecttb of project_tb is
 		wait for c_CLOCK_PERIOD;
 
 		-- Maschera di output = 00000001
-		assert RAM(19) = std_logic_vector(to_unsigned(1 , 8)) report "TEST 5 FALLITO" severity failure;
+		assert RAM(19) = std_logic_vector(to_unsigned(1 , 8)) report "TEST 19 FALLITO" severity failure;
 
   
 		assert false report "Simulation Ended!, TEST PASSATO" severity failure;
