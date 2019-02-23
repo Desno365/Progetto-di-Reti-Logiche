@@ -38,81 +38,34 @@ architecture projectArch of project_reti_logiche is
     
     signal distance_tot : unsigned(8 downto 0) := "111111111"; -- 9 bit perchè massima distanza è 255 + 255 = 510
     
-    procedure get_next_state_and_outputs(
-    in_index : in natural range 0 to 7;
-    in_mask : in std_logic_vector(7 downto 0);
-    signal out_state : out state_type;
-    signal out_address : out std_logic_vector(15 downto 0);
-    signal out_we : out std_logic) is 
+    -- Trova lo stato successivo in base alla maschera (in_mask) e in base allo stato corrente (in_state)
+    function get_next_state(constant in_state : in state_type; constant in_mask : in std_logic_vector(7 downto 0)) return state_type is 
     begin
-        if(in_mask(0) = '1' and in_index <= 0) then
-            out_state <= S_C1X;
-            out_address <= std_logic_vector(START_ADDRESS + 1); -- 1 X centroide 1
-            out_we <= '0';
-        else
-            if(in_mask(1) = '1' and in_index <= 1) then
-                out_state <= S_C2X;
-                out_address <= std_logic_vector(START_ADDRESS + 3); -- 3 X centroide 2
-                out_we <= '0';
-            else
-                if(in_mask(2) = '1' and in_index <= 2) then
-                    out_state <= S_C3X;
-                    out_address <= std_logic_vector(START_ADDRESS + 5); -- 5 X centroide 3
-                    out_we <= '0';
-                else
-                    if(in_mask(3) = '1' and in_index <= 3) then
-                        out_state <= S_C4X;
-                        out_address <= std_logic_vector(START_ADDRESS + 7); -- 7 X centroide 4
-                        out_we <= '0';
-                    else
-                        if(in_mask(4) = '1' and in_index <= 4) then
-                            out_state <= S_C5X;
-                            out_address <= std_logic_vector(START_ADDRESS + 9); -- 9 X centroide 5
-                            out_we <= '0';
-                        else
-                            if(in_mask(5) = '1' and in_index <= 5) then
-                                out_state <= S_C6X;
-                                out_address <= std_logic_vector(START_ADDRESS + 11); -- 11 X centroide 6
-                                out_we <= '0';
-                            else
-                                if(in_mask(6) = '1' and in_index <= 6) then
-                                    out_state <= S_C7X;
-                                    out_address <= std_logic_vector(START_ADDRESS + 13); -- 13 X centroide 7
-                                    out_we <= '0';
-                                else
-                                    if(in_mask(7) = '1' and in_index <= 7) then
-                                        out_state <= S_C8X;
-                                        out_address <= std_logic_vector(START_ADDRESS + 15); -- 15 X centroide 8
-                                        out_we <= '0';
-                                    else
-                                        out_state <= S_DONE;
-                                        out_address <= std_logic_vector(START_ADDRESS + 19); -- 19 out mask
-                                        out_we <= '1';
-                                    end if;
-                                end if;
-                            end if;
-                        end if;
-                    end if;
-                end if;
+        for i in 0 to 7 loop 
+            if(in_mask(i) = '1' and state_type'POS(in_state) <= (4 + (i * 2))) then
+                return state_type'VAL(5 + (i * 2));
             end if;
-        end if;
-    end get_next_state_and_outputs;
+        end loop;
+        return S_DONE;
+    end get_next_state;
     
-    procedure is_immediate_answer(
-    in_mask : in std_logic_vector(7 downto 0);
-    variable out_is_immediate : out std_logic) is 
+    -- Segnala se la maschera di ingresso permette di avere una risposta immediata (cioè se ha 1 oppure 0 bit attivati)
+    function is_immediate_answer(constant in_mask : in std_logic_vector(7 downto 0)) return std_logic is 
     begin
         case in_mask is
             when "00000000"|"00000001"|"00000010"|"00000100"|"00001000"|"00010000"|"00100000"|"01000000"|"10000000" =>
-                out_is_immediate := '1';
+                return '1';
             when others =>
-                out_is_immediate := '0';
+                return '0';
         end case;
     end is_immediate_answer;
     
-    begin
+begin
     
-    -- gestione del clock, del reset e dello start
+    --- ###### GESTIONE STATI ######
+    
+    -- Gestione del clock, del reset e dello start
+    -- Assegnamenti: current_state, x_value_reg, min_distance_reg, out_mask_tmp_reg, input_mask_reg, x_cord_reg, y_cord_reg
     state_clock: process(i_clk, i_rst)
     begin
         if(i_clk'event and i_clk='1') then
@@ -137,8 +90,8 @@ architecture projectArch of project_reti_logiche is
     end process;
     
     -- Gestione dello stato del componente
+    -- Assegnamenti: next_state
     state_manager: process(current_state, i_start, input_mask_signal)
-    variable immediate_answer : std_logic;
     begin
         case current_state is
             when S_RST =>
@@ -147,122 +100,43 @@ architecture projectArch of project_reti_logiche is
                 else
                     next_state <= S_RST;
                 end if;
-                o_address <= "----------------";
-                o_we <= '0';
-
             when S_START =>
                 next_state <= S_INPUT_MASK;
-                o_address <= std_logic_vector(START_ADDRESS); -- 0 input mask
-                o_we <= '0';
-
             when S_INPUT_MASK =>
-                is_immediate_answer(input_mask_signal, immediate_answer);
-                if(immediate_answer = '1') then
+                if(is_immediate_answer(input_mask_signal) = '1') then
                     next_state <= S_DONE;
-                     o_address <= std_logic_vector(START_ADDRESS + 19); -- 19 out mask
-                     o_we <= '1';
                 else
                     next_state <= S_COORD_X;
-                    o_address <= std_logic_vector(START_ADDRESS + 17); -- 17 X del punto da valutare
-                    o_we <= '0';
                 end if;
-
             when S_COORD_X =>
                 next_state <= S_COORD_Y;
-                o_address <= std_logic_vector(START_ADDRESS + 18); -- 18 Y del punto da valutare
-                o_we <= '0';
-
-            when S_COORD_Y =>
-                get_next_state_and_outputs(0, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C1X =>
-                next_state <= S_C1Y;
-                o_address <= std_logic_vector(START_ADDRESS + 2); -- 2 Y centroide 1
-                o_we <= '0';
-
-            when S_C1Y =>
-                get_next_state_and_outputs(1, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C2X =>
-                next_state <= S_C2Y;
-                o_address <= std_logic_vector(START_ADDRESS + 4); -- 4 Y centroide 2
-                o_we <= '0';
-
-            when S_C2Y =>
-                get_next_state_and_outputs(2, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C3X =>
-                next_state <= S_C3Y;
-                o_address <= std_logic_vector(START_ADDRESS + 6); -- 6 Y centroide 3
-                o_we <= '0';
-
-            when S_C3Y =>
-                get_next_state_and_outputs(3, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C4X =>
-                next_state <= S_C4Y;
-                o_address <= std_logic_vector(START_ADDRESS + 8); -- 8 Y centroide 4
-                o_we <= '0';
-
-            when S_C4Y =>
-                get_next_state_and_outputs(4, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C5X =>          
-                next_state <= S_C5Y;
-                o_address <= std_logic_vector(START_ADDRESS + 10); -- 10 Y centroide 5
-                o_we <= '0';
-
-            when S_C5Y =>
-                get_next_state_and_outputs(5, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C6X =>
-                next_state <= S_C6Y;
-                o_address <= std_logic_vector(START_ADDRESS + 12); -- 12 Y centroide 6
-                o_we <= '0';
-
-            when S_C6Y =>
-                get_next_state_and_outputs(6, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C7X =>
-                next_state <= S_C7Y;
-                o_address <= std_logic_vector(START_ADDRESS + 14); -- 14 Y centroide 7
-                o_we <= '0';
-
-            when S_C7Y =>
-                get_next_state_and_outputs(7, input_mask_signal, next_state, o_address, o_we);
-
-            when S_C8X =>
-                next_state <= S_C8Y;
-                o_address <= std_logic_vector(START_ADDRESS + 16); -- 16 Y centroide 8
-                o_we <= '0';
-
+            when S_COORD_Y|S_C1Y|S_C2Y|S_C3Y|S_C4Y|S_C5Y|S_C6Y|S_C7Y =>
+                next_state <= get_next_state(current_state, input_mask_signal);
+            when S_C1X|S_C2X|S_C3X|S_C4X|S_C5X|S_C6X|S_C7X|S_C8X =>
+                next_state <= state_type'SUCC(current_state);
             when S_C8Y =>
                 next_state <= S_DONE;
-                o_address <= std_logic_vector(START_ADDRESS + 19); -- 19 out mask
-                o_we <= '1';
-
             when S_DONE =>
                 if(i_start = '1') then
                     next_state <= S_DONE;
                 else
                     next_state <= S_END;
                 end if;
-                o_address <= "----------------";
-                o_we <= '0';
-
             when S_END =>
                 if(i_start = '1') then
                     next_state <= S_START;
                 else
                     next_state <= S_END;
                 end if;
-                o_address <= "----------------";
-                o_we <= '0';
 
         end case;
     end process;
     
+    
+    --- ###### INPUT ######
+    
     -- Gestione dell'input e assegnamento di esso al giusto signal
+    -- Assegnamenti:  input_mask_signal, x_cord_signal, y_cord_signal, x_value_signal
     input_manager: process(current_state, i_data, input_mask_reg, x_cord_reg, y_cord_reg, x_value_reg)
     begin
         case current_state is
@@ -294,7 +168,11 @@ architecture projectArch of project_reti_logiche is
         end case;
     end process;
     
+    
+    --- ###### CALCOLO DISTANZA ######
+    
     -- Calcolo della distanza totale
+    -- Assegnamenti: distance_tot
     distance_calc: process(current_state, x_cord_reg, y_cord_reg, x_value_reg, i_data) -- i_data è per la variabile y del centroide presa direttamente dall'ingresso
     variable distance_x : signed(8 downto 0) := "000000000";
     variable distance_y : signed(8 downto 0) := "000000000";
@@ -310,9 +188,9 @@ architecture projectArch of project_reti_logiche is
     end process;
 
     -- Controlla se la nuova distanza è minima
+    -- Assegnamenti: out_mask_tmp_signal, min_distance_signal
     check_min: process(current_state, input_mask_signal, distance_tot, min_distance_reg, out_mask_tmp_reg)
     variable distance_mask : std_logic_vector(7 downto 0) := "00000000";
-    variable immediate_answer : std_logic;
     begin
         case current_state is
             when S_C1Y =>
@@ -335,7 +213,7 @@ architecture projectArch of project_reti_logiche is
                 distance_mask := "00000000";
         end case;
         
-        if(distance_mask /= "00000000") then -- Se centroide da considerare per mask
+        if(distance_mask /= "00000000") then -- Se siamo in uno stato in cui c'è da calcolare distanza
             if(distance_tot < min_distance_reg) then
                 out_mask_tmp_signal <= distance_mask;
                 min_distance_signal <= distance_tot;
@@ -348,10 +226,9 @@ architecture projectArch of project_reti_logiche is
             end if;
         else
             if(current_state = S_INPUT_MASK) then
-                is_immediate_answer(input_mask_signal, immediate_answer);
-                if(immediate_answer = '1') then -- se è a risposta immediata possiamo dare dirrettamente la maschera di uscita
-                out_mask_tmp_signal <= input_mask_signal;
-                min_distance_signal <= "111111111";
+                if(is_immediate_answer(input_mask_signal) = '1') then -- se è a risposta immediata possiamo dare dirrettamente la maschera di uscita
+                    out_mask_tmp_signal <= input_mask_signal;
+                    min_distance_signal <= "111111111";
                 end if;
             elsif(current_state = S_END) then  -- preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset)
                 out_mask_tmp_signal <= "00000000";
@@ -363,15 +240,71 @@ architecture projectArch of project_reti_logiche is
         end if;
     end process;
     
-    -- Gestisce gli output di enable per la RAM
-    o_en <= '0' when (current_state = S_RST or
-                      current_state = S_DONE or
-                      current_state = S_END) else '1';
     
-    -- Gestisce l'ouput di fine elaborazione
+    --- ###### OUTPUT ######
+    
+    -- Assegnamento di o_address in base a stato successivo (il dato letto allo stato successivo dipende dallo stato in cui si andrà)
+    o_address_manager: process(next_state)
+    variable immediate_answer : std_logic;
+    begin
+        case next_state is
+            when S_RST|S_START =>
+                o_address <= "----------------";
+            when S_INPUT_MASK =>
+                o_address <= std_logic_vector(START_ADDRESS + 0); -- 0 input mask
+            when S_COORD_X =>
+                o_address <= std_logic_vector(START_ADDRESS + 17); -- 17 X del punto da valutare
+            when S_COORD_Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 18); -- 18 Y del punto da valutare
+            when S_C1X =>
+                o_address <= std_logic_vector(START_ADDRESS + 1); -- 1 X centroide 1
+            when S_C1Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 2); -- 2 Y centroide 1
+            when S_C2X =>
+                o_address <= std_logic_vector(START_ADDRESS + 3); -- 3 X centroide 2
+            when S_C2Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 4); -- 4 Y centroide 2
+            when S_C3X =>
+                o_address <= std_logic_vector(START_ADDRESS + 5); -- 5 X centroide 3
+            when S_C3Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 6); -- 6 Y centroide 3
+            when S_C4X =>
+                o_address <= std_logic_vector(START_ADDRESS + 7); -- 7 X centroide 4
+            when S_C4Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 8); -- 8 Y centroide 4
+            when S_C5X =>          
+                o_address <= std_logic_vector(START_ADDRESS + 9); -- 9 X centroide 5
+            when S_C5Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 10); -- 10 Y centroide 5
+            when S_C6X =>
+                o_address <= std_logic_vector(START_ADDRESS + 11); -- 11 X centroide 6
+            when S_C6Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 12); -- 12 Y centroide 6
+            when S_C7X =>
+                o_address <= std_logic_vector(START_ADDRESS + 13); -- 13 X centroide 7
+            when S_C7Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 14); -- 14 Y centroide 7
+            when S_C8X =>
+                o_address <= std_logic_vector(START_ADDRESS + 15); -- 15 X centroide 8
+            when S_C8Y =>
+                o_address <= std_logic_vector(START_ADDRESS + 16); -- 16 Y centroide 8
+            when S_DONE =>
+                o_address <= std_logic_vector(START_ADDRESS + 19); -- 19 out mask
+            when S_END =>
+                o_address <= "----------------";
+        end case;
+    end process;
+    
+    -- Assegnamento dell'output di scrittura della RAM
+    o_we <= '1' when (next_state = S_DONE) else '0';
+    
+    -- Assegnamento dell'output di enable per la RAM
+    o_en <= '0' when (current_state = S_RST or current_state = S_DONE or current_state = S_END) else '1';
+    
+    -- Assegnamento dell'output di fine elaborazione
     o_done <= '1' when (current_state = S_DONE) else '0';
               
-    -- Assegnamenti del segnale d'ingresso alla RAM
+    -- Assegnamento del segnale di scrittura della RAM
     o_data <= out_mask_tmp_signal;
 
 end projectArch;
