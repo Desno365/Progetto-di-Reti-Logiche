@@ -513,6 +513,160 @@ architecture projecttb of project_tb is
                             18 => std_logic_vector(to_unsigned( 33 , 8)),
                             others => (others =>'0'));
                     count <= 20;
+                 elsif(count = 20) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 161 , 8)), -- 1010'0001
+                            1 => std_logic_vector(to_unsigned( 36 , 8)),
+                            2 => std_logic_vector(to_unsigned( 4 , 8)),
+                            3 => std_logic_vector(to_unsigned( 36 , 8)),
+                            4 => std_logic_vector(to_unsigned( 4 , 8)),
+                            5 => std_logic_vector(to_unsigned( 36 , 8)),
+                            6 => std_logic_vector(to_unsigned( 4 , 8)),
+                            7 => std_logic_vector(to_unsigned( 36 , 8)),
+                            8 => std_logic_vector(to_unsigned( 4 , 8)),
+                            9 => std_logic_vector(to_unsigned( 36 , 8)),
+                            10 => std_logic_vector(to_unsigned( 4 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 99 , 8)),
+                            13 => std_logic_vector(to_unsigned( 36 , 8)),
+                            14 => std_logic_vector(to_unsigned( 4 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 21;
+                elsif(count = 21) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 134 , 8)), -- 1000'0110
+                            1 => std_logic_vector(to_unsigned( 36 , 8)),
+                            2 => std_logic_vector(to_unsigned( 4 , 8)),
+                            3 => std_logic_vector(to_unsigned( 36 , 8)),
+                            4 => std_logic_vector(to_unsigned( 4 , 8)),
+                            5 => std_logic_vector(to_unsigned( 99 , 8)),
+                            6 => std_logic_vector(to_unsigned( 99 , 8)),
+                            7 => std_logic_vector(to_unsigned( 36 , 8)),
+                            8 => std_logic_vector(to_unsigned( 4 , 8)),
+                            9 => std_logic_vector(to_unsigned( 36 , 8)),
+                            10 => std_logic_vector(to_unsigned( 4 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 4 , 8)),
+                            13 => std_logic_vector(to_unsigned( 36 , 8)),
+                            14 => std_logic_vector(to_unsigned( 4 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 22;
+                elsif(count = 22) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 196 , 8)), -- 1100'0100
+                            1 => std_logic_vector(to_unsigned( 36 , 8)),
+                            2 => std_logic_vector(to_unsigned( 4 , 8)),
+                            3 => std_logic_vector(to_unsigned( 36 , 8)),
+                            4 => std_logic_vector(to_unsigned( 4 , 8)),
+                            5 => std_logic_vector(to_unsigned( 36 , 8)),
+                            6 => std_logic_vector(to_unsigned( 4 , 8)),
+                            7 => std_logic_vector(to_unsigned( 36 , 8)),
+                            8 => std_logic_vector(to_unsigned( 4 , 8)),
+                            9 => std_logic_vector(to_unsigned( 36 , 8)),
+                            10 => std_logic_vector(to_unsigned( 4 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 4 , 8)),
+                            13 => std_logic_vector(to_unsigned( 99 , 8)),
+                            14 => std_logic_vector(to_unsigned( 99 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 23;
+                elsif(count = 23) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 137 , 8)), -- 1000'1001
+                            1 => std_logic_vector(to_unsigned( 99 , 8)),
+                            2 => std_logic_vector(to_unsigned( 99 , 8)),
+                            3 => std_logic_vector(to_unsigned( 36 , 8)),
+                            4 => std_logic_vector(to_unsigned( 4 , 8)),
+                            5 => std_logic_vector(to_unsigned( 36 , 8)),
+                            6 => std_logic_vector(to_unsigned( 4 , 8)),
+                            7 => std_logic_vector(to_unsigned( 36 , 8)),
+                            8 => std_logic_vector(to_unsigned( 4 , 8)),
+                            9 => std_logic_vector(to_unsigned( 36 , 8)),
+                            10 => std_logic_vector(to_unsigned( 4 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 4 , 8)),
+                            13 => std_logic_vector(to_unsigned( 36 , 8)),
+                            14 => std_logic_vector(to_unsigned( 4 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 24;
+                elsif(count = 24) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 152 , 8)), -- 1001'1000
+                            1 => std_logic_vector(to_unsigned( 36 , 8)),
+                            2 => std_logic_vector(to_unsigned( 4 , 8)),
+                            3 => std_logic_vector(to_unsigned( 36 , 8)),
+                            4 => std_logic_vector(to_unsigned( 4 , 8)),
+                            5 => std_logic_vector(to_unsigned( 36 , 8)),
+                            6 => std_logic_vector(to_unsigned( 4 , 8)),
+                            7 => std_logic_vector(to_unsigned( 99 , 8)),
+                            8 => std_logic_vector(to_unsigned( 99 , 8)),
+                            9 => std_logic_vector(to_unsigned( 36 , 8)),
+                            10 => std_logic_vector(to_unsigned( 4 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 4 , 8)),
+                            13 => std_logic_vector(to_unsigned( 36 , 8)),
+                            14 => std_logic_vector(to_unsigned( 4 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 25;
+                elsif(count = 25) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 161 , 8)), -- 1010'0001
+                            1 => std_logic_vector(to_unsigned( 99 , 8)),
+                            2 => std_logic_vector(to_unsigned( 99 , 8)),
+                            3 => std_logic_vector(to_unsigned( 36 , 8)),
+                            4 => std_logic_vector(to_unsigned( 4 , 8)),
+                            5 => std_logic_vector(to_unsigned( 36 , 8)),
+                            6 => std_logic_vector(to_unsigned( 4 , 8)),
+                            7 => std_logic_vector(to_unsigned( 36 , 8)),
+                            8 => std_logic_vector(to_unsigned( 4 , 8)),
+                            9 => std_logic_vector(to_unsigned( 36 , 8)),
+                            10 => std_logic_vector(to_unsigned( 4 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 4 , 8)),
+                            13 => std_logic_vector(to_unsigned( 36 , 8)),
+                            14 => std_logic_vector(to_unsigned( 4 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 26;
+                elsif(count = 26) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 207 , 8)), -- 1100'1111
+                            1 => std_logic_vector(to_unsigned( 99 , 8)),
+                            2 => std_logic_vector(to_unsigned( 99 , 8)),
+                            3 => std_logic_vector(to_unsigned( 98 , 8)),
+                            4 => std_logic_vector(to_unsigned( 98 , 8)),
+                            5 => std_logic_vector(to_unsigned( 97 , 8)),
+                            6 => std_logic_vector(to_unsigned( 97 , 8)),
+                            7 => std_logic_vector(to_unsigned( 96 , 8)),
+                            8 => std_logic_vector(to_unsigned( 96 , 8)),
+                            9 => std_logic_vector(to_unsigned( 95 , 8)),
+                            10 => std_logic_vector(to_unsigned( 95 , 8)),
+                            11 => std_logic_vector(to_unsigned( 36 , 8)),
+                            12 => std_logic_vector(to_unsigned( 4 , 8)),
+                            13 => std_logic_vector(to_unsigned( 36 , 8)),
+                            14 => std_logic_vector(to_unsigned( 4 , 8)),
+                            15 => std_logic_vector(to_unsigned( 36 , 8)),
+                            16 => std_logic_vector(to_unsigned( 4 , 8)),
+                            17 => std_logic_vector(to_unsigned( 36 , 8)),
+                            18 => std_logic_vector(to_unsigned( 4 , 8)),
+                            others => (others =>'0'));
+                    count <= 27;
                 end if;
             else
                 if enable_wire = '1' then
@@ -890,8 +1044,134 @@ architecture projecttb of project_tb is
 
 		-- Maschera di output = 00000001
 		assert RAM(19) = std_logic_vector(to_unsigned(1 , 8)) report "TEST 19 FALLITO" severity failure;
+		
+		-- test 20
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
 
-  
+		-- Maschera di output = 10000001
+		assert RAM(19) = std_logic_vector(to_unsigned(129 , 8)) report "TEST 20 FALLITO" severity failure;
+		
+		-- test 21
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 10000010
+		assert RAM(19) = std_logic_vector(to_unsigned(130 , 8)) report "TEST 21 FALLITO" severity failure;
+		
+		-- test 22
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 10000100
+		assert RAM(19) = std_logic_vector(to_unsigned(132 , 8)) report "TEST 22 FALLITO" severity failure;
+		
+		-- test 23
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 10001000
+		assert RAM(19) = std_logic_vector(to_unsigned(136 , 8)) report "TEST 23 FALLITO" severity failure;
+		
+		-- test 24
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 10010000
+		assert RAM(19) = std_logic_vector(to_unsigned(144 , 8)) report "TEST 24 FALLITO" severity failure;
+		
+		-- test 25
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 10100000
+		assert RAM(19) = std_logic_vector(to_unsigned(160 , 8)) report "TEST 25 FALLITO" severity failure;
+		
+		-- test 26
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 11000000
+		assert RAM(19) = std_logic_vector(to_unsigned(192 , 8)) report "TEST 26 FALLITO" severity failure;
+		
+		
 		assert false report "Simulation Ended!, TEST PASSATO" severity failure;
 	end process test;
 
