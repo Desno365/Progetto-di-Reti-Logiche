@@ -66,7 +66,7 @@ begin
     
     -- Gestione del clock, del reset e dello start
     -- Assegnamenti: current_state, x_value_reg, min_distance_reg, out_mask_tmp_reg, input_mask_reg, x_cord_reg, y_cord_reg
-    state_clock: process(i_clk, i_rst)
+    state_clock: process(i_clk, i_rst, next_state, x_value_signal, min_distance_signal, out_mask_tmp_signal, input_mask_signal, x_cord_signal, y_cord_signal)
     begin
         if(i_clk'event and i_clk='1') then
             if(i_rst = '1') then
@@ -128,7 +128,6 @@ begin
                 else
                     next_state <= S_END;
                 end if;
-
         end case;
     end process;
     
@@ -225,11 +224,9 @@ begin
                 min_distance_signal <= min_distance_reg;
             end if;
         else
-            if(current_state = S_INPUT_MASK) then
-                if(is_immediate_answer(input_mask_signal) = '1') then -- se è a risposta immediata possiamo dare dirrettamente la maschera di uscita
-                    out_mask_tmp_signal <= input_mask_signal;
-                    min_distance_signal <= "111111111";
-                end if;
+            if(current_state = S_INPUT_MASK and is_immediate_answer(input_mask_signal) = '1') then -- se è a risposta immediata possiamo dare dirrettamente la maschera di uscita
+                out_mask_tmp_signal <= input_mask_signal;
+                min_distance_signal <= "111111111";
             elsif(current_state = S_END) then  -- preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset)
                 out_mask_tmp_signal <= "00000000";
                 min_distance_signal <= "111111111";
@@ -295,16 +292,16 @@ begin
         end case;
     end process;
     
-    -- Assegnamento dell'output di scrittura della RAM
-    o_we <= '1' when (next_state = S_DONE) else '0';
-    
     -- Assegnamento dell'output di enable per la RAM
     o_en <= '0' when (current_state = S_RST or current_state = S_DONE or current_state = S_END) else '1';
     
-    -- Assegnamento dell'output di fine elaborazione
-    o_done <= '1' when (current_state = S_DONE) else '0';
+    -- Assegnamento dell'output di scrittura della RAM
+    o_we <= '1' when (next_state = S_DONE) else '0';
               
     -- Assegnamento del segnale di scrittura della RAM
-    o_data <= out_mask_tmp_signal;
+    o_data <= out_mask_tmp_signal when (next_state = S_DONE) else "--------";
+    
+    -- Assegnamento dell'output di fine elaborazione
+    o_done <= '1' when (current_state = S_DONE) else '0';
 
 end projectArch;
