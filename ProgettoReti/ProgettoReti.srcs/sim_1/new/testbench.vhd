@@ -3,10 +3,10 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_unsigned.all;
 
-entity project_tb is
-end project_tb;
+entity project_tb_custom is
+end project_tb_custom;
 
-architecture projecttb of project_tb is
+architecture projecttbcustom of project_tb_custom is
 
 	constant c_CLOCK_PERIOD			: time := 100 ns;
 	signal   tb_done				: std_logic;
@@ -667,6 +667,50 @@ architecture projecttb of project_tb is
                             18 => std_logic_vector(to_unsigned( 4 , 8)),
                             others => (others =>'0'));
                     count <= 27;
+                 elsif(count = 27) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 185 , 8)),
+                            1 => std_logic_vector(to_unsigned( 75 , 8)),
+                            2 => std_logic_vector(to_unsigned( 32 , 8)),
+                            3 => std_logic_vector(to_unsigned( 111 , 8)),
+                            4 => std_logic_vector(to_unsigned( 213 , 8)),
+                            5 => std_logic_vector(to_unsigned( 79 , 8)),
+                            6 => std_logic_vector(to_unsigned( 33 , 8)),
+                            7 => std_logic_vector(to_unsigned( 1 , 8)),
+                            8 => std_logic_vector(to_unsigned( 33 , 8)),
+                            9 => std_logic_vector(to_unsigned( 80 , 8)),
+                            10 => std_logic_vector(to_unsigned( 35 , 8)),
+                            11 => std_logic_vector(to_unsigned( 12 , 8)),
+                            12 => std_logic_vector(to_unsigned( 254 , 8)),
+                            13 => std_logic_vector(to_unsigned( 215 , 8)),
+                            14 => std_logic_vector(to_unsigned( 78 , 8)),
+                            15 => std_logic_vector(to_unsigned( 78 , 8)),
+                            16 => std_logic_vector(to_unsigned( 37 , 8)),
+                            17 => std_logic_vector(to_unsigned( 78 , 8)),
+                            18 => std_logic_vector(to_unsigned( 33 , 8)),
+                            others => (others =>'0'));
+                    count <= 28;
+                elsif(count = 28) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 57 , 8)),
+                            1 => std_logic_vector(to_unsigned( 16 , 8)),
+                            2 => std_logic_vector(to_unsigned( 2 , 8)),
+                            3 => std_logic_vector(to_unsigned( 111 , 8)),
+                            4 => std_logic_vector(to_unsigned( 213 , 8)),
+                            5 => std_logic_vector(to_unsigned( 79 , 8)),
+                            6 => std_logic_vector(to_unsigned( 33 , 8)),
+                            7 => std_logic_vector(to_unsigned( 1 , 8)),
+                            8 => std_logic_vector(to_unsigned( 33 , 8)),
+                            9 => std_logic_vector(to_unsigned( 11 , 8)),
+                            10 => std_logic_vector(to_unsigned( 7 , 8)),
+                            11 => std_logic_vector(to_unsigned( 12 , 8)),
+                            12 => std_logic_vector(to_unsigned( 254 , 8)),
+                            13 => std_logic_vector(to_unsigned( 215 , 8)),
+                            14 => std_logic_vector(to_unsigned( 78 , 8)),
+                            15 => std_logic_vector(to_unsigned( 16 , 8)),
+                            16 => std_logic_vector(to_unsigned( 2 , 8)),
+                            17 => std_logic_vector(to_unsigned( 6 , 8)),
+                            18 => std_logic_vector(to_unsigned( 2 , 8)),
+                            others => (others =>'0'));
+                    count <= 29;
                 end if;
             else
                 if enable_wire = '1' then
@@ -1172,7 +1216,35 @@ architecture projecttb of project_tb is
 		assert RAM(19) = std_logic_vector(to_unsigned(192 , 8)) report "TEST 26 FALLITO" severity failure;
 		
 		
+		-- test 27 (come test 1 ma testiamo velocità massima del testbench)
+		ram_set <= '1';
+		wait for c_CLOCK_PERIOD;
+		ram_set <= '0';
+		tb_start <= '1';
+		wait until tb_done = '1';
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 10010001
+		assert RAM(19) = std_logic_vector(to_unsigned(145 , 8)) report "TEST 27 FALLITO" severity failure;
+		
+		-- test 28 (come test 1 ma testiamo velocità massima del testbench)
+		ram_set <= '1';
+		wait for c_CLOCK_PERIOD;
+		ram_set <= '0';
+		tb_start <= '1';
+		wait until tb_done = '1';
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+		
+		-- Maschera di output = 00010001
+		assert RAM(19) = std_logic_vector(to_unsigned(17 , 8)) report "TEST 28 FALLITO" severity failure;
+		
+		
+		
 		assert false report "Simulation Ended!, TEST PASSATO" severity failure;
 	end process test;
 
-end projecttb; 
+end projecttbcustom; 
