@@ -36,8 +36,8 @@ architecture projectArch of project_reti_logiche is
     signal out_mask_tmp_reg :  std_logic_vector(7 downto 0) := "00000000";
     signal out_mask_tmp_signal :  std_logic_vector(7 downto 0) := "00000000";
     
-    signal distance_x : signed(8 downto 0) := "000000000";
-    signal distance_y : signed(8 downto 0) := "000000000";
+    signal distance_x : unsigned(8 downto 0) := "000000000";
+    signal distance_y : unsigned(8 downto 0) := "000000000";
     signal distance_tot : unsigned(8 downto 0) := "111111111"; -- 9 bit perchè massima distanza è 255 + 255 = 510
     
     -- Trova lo stato successivo in base alla maschera (in_mask) e in base allo stato corrente (in_state)
@@ -93,7 +93,7 @@ begin
     
     -- Gestione dello stato del componente
     -- Assegnamenti: next_state
-    state_manager: process(current_state, i_start, input_mask_signal)
+    state_manager: process(current_state, i_start, input_mask_signal, distance_x, min_distance_reg)
     begin
         case current_state is
             when S_RST =>
@@ -115,7 +115,11 @@ begin
             when S_COORD_Y|S_C1Y|S_C2Y|S_C3Y|S_C4Y|S_C5Y|S_C6Y|S_C7Y =>
                 next_state <= get_next_state(current_state, input_mask_signal);
             when S_C1X|S_C2X|S_C3X|S_C4X|S_C5X|S_C6X|S_C7X|S_C8X =>
-                next_state <= state_type'SUCC(current_state);
+                if(distance_x > min_distance_reg) then -- se la distanza X è già maggiore della distanza minima è inutile calcolare la distanza Y, passiamo direttamente a centroide successivo
+                    next_state <= get_next_state(current_state, input_mask_signal);
+                else
+                    next_state <= state_type'SUCC(current_state);
+                end if;
             when S_C8Y =>
                 next_state <= S_DONE;
             when S_DONE =>
@@ -136,7 +140,7 @@ begin
     
     --- ###### INPUT ######
     
-    -- Gestione dell'input e assegnamento di esso al giusto signal
+    -- Gestione dell'input e assegnamento di esso al giusto signal (se non siamo in uno stato di assegnamento dell'input mantiene il valore precedente)
     -- Assegnamenti:  input_mask_signal, x_cord_signal, y_cord_signal, x_value_signal
     input_mask_signal <= i_data when (current_state = S_INPUT_MASK) else input_mask_reg;
     x_cord_signal <= i_data when (current_state = S_COORD_X) else x_cord_reg;
@@ -148,9 +152,9 @@ begin
     
     -- Calcolo della distanza totale
     -- Assegnamenti: distance_x, distance_y, distance_tot
-    distance_x <= abs(signed('0' & x_value_reg) - signed('0' & x_cord_reg)) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
-    distance_y <= abs(signed('0' & i_data) - signed('0' & y_cord_reg)) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
-    distance_tot <= unsigned(distance_x + distance_y) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "111111111";
+    distance_x <= unsigned(abs(signed('0' & x_value_signal) - signed('0' & x_cord_signal))) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
+    distance_y <= unsigned(abs(signed('0' & i_data) - signed('0' & y_cord_signal))) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
+    distance_tot <= (distance_x + distance_y) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "111111111";
 
     -- Controlla se la nuova distanza è minima
     -- Assegnamenti: out_mask_tmp_signal, min_distance_signal
@@ -206,7 +210,7 @@ begin
     
     --- ###### OUTPUT ######
     
-    -- Assegnamento di o_address in base a stato successivo (il dato letto allo stato successivo dipende dallo stato in cui si andrà)
+    -- Assegnamento di o_address in base allo stato successivo (il dato letto allo stato successivo dipende dallo stato in cui si andrà)
     with next_state select o_address <=
         "----------------" when S_RST,
         "----------------" when S_START,
@@ -232,16 +236,13 @@ begin
         std_logic_vector(START_ADDRESS + 19) when S_DONE, -- 19 out mask
         "----------------" when S_END;
 
-    -- Assegnamento dell'output di enable per la RAM
+    -- Assegnamento di output che andranno in ingresso alla RAM
+    -- Assegnamenti: o_en, o_we, o_data
     o_en <= '1' when (current_state /= S_RST and current_state /= S_DONE and current_state /= S_END) else '0';
-    
-    -- Assegnamento dell'output di scrittura della RAM
     o_we <= '1' when (next_state = S_DONE) else '0';
-              
-    -- Assegnamento del segnale di scrittura della RAM
     o_data <= out_mask_tmp_signal when (next_state = S_DONE) else "--------";
     
-    -- Assegnamento dell'output di fine elaborazione
+    -- Assegnamento di o_done
     o_done <= '1' when (current_state = S_DONE) else '0';
 
 end projectArch;
