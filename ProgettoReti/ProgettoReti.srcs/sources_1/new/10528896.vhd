@@ -36,6 +36,8 @@ architecture projectArch of project_reti_logiche is
     signal out_mask_tmp_reg :  std_logic_vector(7 downto 0) := "00000000";
     signal out_mask_tmp_signal :  std_logic_vector(7 downto 0) := "00000000";
     
+    signal distance_x : signed(8 downto 0) := "000000000";
+    signal distance_y : signed(8 downto 0) := "000000000";
     signal distance_tot : unsigned(8 downto 0) := "111111111"; -- 9 bit perchè massima distanza è 255 + 255 = 510
     
     -- Trova lo stato successivo in base alla maschera (in_mask) e in base allo stato corrente (in_state)
@@ -136,55 +138,19 @@ begin
     
     -- Gestione dell'input e assegnamento di esso al giusto signal
     -- Assegnamenti:  input_mask_signal, x_cord_signal, y_cord_signal, x_value_signal
-    input_manager: process(current_state, i_data, input_mask_reg, x_cord_reg, y_cord_reg, x_value_reg)
-    begin
-        case current_state is
-            when S_INPUT_MASK =>
-                input_mask_signal <= i_data; -- Input Mask
-                x_cord_signal <= x_cord_reg;
-                y_cord_signal <= y_cord_reg;
-                x_value_signal <= x_value_reg;
-            when S_COORD_X =>
-                x_cord_signal <= i_data; -- X punto da valutare
-                input_mask_signal <= input_mask_reg; 
-                y_cord_signal <= y_cord_reg;
-                x_value_signal <= x_value_reg;
-            when S_COORD_Y =>
-                y_cord_signal <= i_data; -- Y punto da valutare
-                input_mask_signal <= input_mask_reg;
-                x_cord_signal <= x_cord_reg;
-                x_value_signal <= x_value_reg;
-            when S_C1X|S_C2X|S_C3X|S_C4X|S_C5X|S_C6X|S_C7X|S_C8X =>
-                x_value_signal <= i_data; -- X dei centroidi
-                input_mask_signal <= input_mask_reg;
-                x_cord_signal <= x_cord_reg;
-                y_cord_signal <= y_cord_reg;
-            when others =>
-                input_mask_signal <= input_mask_reg;
-                x_cord_signal <= x_cord_reg;
-                y_cord_signal <= y_cord_reg;
-                x_value_signal <= x_value_reg;
-        end case;
-    end process;
+    input_mask_signal <= i_data when (current_state = S_INPUT_MASK) else input_mask_reg;
+    x_cord_signal <= i_data when (current_state = S_COORD_X) else x_cord_reg;
+    y_cord_signal <= i_data when (current_state = S_COORD_Y) else y_cord_reg;
+    x_value_signal <= i_data when (current_state = S_C1X or current_state = S_C2X or current_state = S_C3X or current_state = S_C4X or current_state = S_C5X or current_state = S_C6X or current_state = S_C7X or current_state = S_C8X) else x_value_reg;
     
     
     --- ###### CALCOLO DISTANZA ######
     
     -- Calcolo della distanza totale
-    -- Assegnamenti: distance_tot
-    distance_calc: process(current_state, x_cord_reg, y_cord_reg, x_value_reg, i_data) -- i_data è per la variabile y del centroide presa direttamente dall'ingresso
-    variable distance_x : signed(8 downto 0) := "000000000";
-    variable distance_y : signed(8 downto 0) := "000000000";
-    begin
-        case current_state is
-            when S_C1Y|S_C2Y|S_C3Y|S_C4Y|S_C5Y|S_C6Y|S_C7Y|S_C8Y =>
-                distance_x := abs(signed('0' & x_value_reg) - signed('0' & x_cord_reg));
-                distance_y := abs(signed('0' & i_data) - signed('0' & y_cord_reg));
-                distance_tot <= unsigned(distance_x + distance_y);
-            when others =>
-                distance_tot <= "111111111";
-        end case;
-    end process;
+    -- Assegnamenti: distance_x, distance_y, distance_tot
+    distance_x <= abs(signed('0' & x_value_reg) - signed('0' & x_cord_reg)) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
+    distance_y <= abs(signed('0' & i_data) - signed('0' & y_cord_reg)) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
+    distance_tot <= unsigned(distance_x + distance_y) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "111111111";
 
     -- Controlla se la nuova distanza è minima
     -- Assegnamenti: out_mask_tmp_signal, min_distance_signal
@@ -241,59 +207,33 @@ begin
     --- ###### OUTPUT ######
     
     -- Assegnamento di o_address in base a stato successivo (il dato letto allo stato successivo dipende dallo stato in cui si andrà)
-    o_address_manager: process(next_state)
-    variable immediate_answer : std_logic;
-    begin
-        case next_state is
-            when S_RST|S_START =>
-                o_address <= "----------------";
-            when S_INPUT_MASK =>
-                o_address <= std_logic_vector(START_ADDRESS + 0); -- 0 input mask
-            when S_COORD_X =>
-                o_address <= std_logic_vector(START_ADDRESS + 17); -- 17 X del punto da valutare
-            when S_COORD_Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 18); -- 18 Y del punto da valutare
-            when S_C1X =>
-                o_address <= std_logic_vector(START_ADDRESS + 1); -- 1 X centroide 1
-            when S_C1Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 2); -- 2 Y centroide 1
-            when S_C2X =>
-                o_address <= std_logic_vector(START_ADDRESS + 3); -- 3 X centroide 2
-            when S_C2Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 4); -- 4 Y centroide 2
-            when S_C3X =>
-                o_address <= std_logic_vector(START_ADDRESS + 5); -- 5 X centroide 3
-            when S_C3Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 6); -- 6 Y centroide 3
-            when S_C4X =>
-                o_address <= std_logic_vector(START_ADDRESS + 7); -- 7 X centroide 4
-            when S_C4Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 8); -- 8 Y centroide 4
-            when S_C5X =>          
-                o_address <= std_logic_vector(START_ADDRESS + 9); -- 9 X centroide 5
-            when S_C5Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 10); -- 10 Y centroide 5
-            when S_C6X =>
-                o_address <= std_logic_vector(START_ADDRESS + 11); -- 11 X centroide 6
-            when S_C6Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 12); -- 12 Y centroide 6
-            when S_C7X =>
-                o_address <= std_logic_vector(START_ADDRESS + 13); -- 13 X centroide 7
-            when S_C7Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 14); -- 14 Y centroide 7
-            when S_C8X =>
-                o_address <= std_logic_vector(START_ADDRESS + 15); -- 15 X centroide 8
-            when S_C8Y =>
-                o_address <= std_logic_vector(START_ADDRESS + 16); -- 16 Y centroide 8
-            when S_DONE =>
-                o_address <= std_logic_vector(START_ADDRESS + 19); -- 19 out mask
-            when S_END =>
-                o_address <= "----------------";
-        end case;
-    end process;
-    
+    with next_state select o_address <=
+        "----------------" when S_RST,
+        "----------------" when S_START,
+        std_logic_vector(START_ADDRESS + 0) when S_INPUT_MASK, -- 0 input mask
+        std_logic_vector(START_ADDRESS + 17) when S_COORD_X, -- 17 X del punto da valutare
+        std_logic_vector(START_ADDRESS + 18) when S_COORD_y, -- 18 Y del punto da valutare
+        std_logic_vector(START_ADDRESS + 1) when S_C1X, -- 1 X centroide 1
+        std_logic_vector(START_ADDRESS + 2) when S_C1Y, -- 2 Y centroide 1
+        std_logic_vector(START_ADDRESS + 3) when S_C2X, -- 3 X centroide 2
+        std_logic_vector(START_ADDRESS + 4) when S_C2Y, -- 4 Y centroide 2
+        std_logic_vector(START_ADDRESS + 5) when S_C3X, -- 5 X centroide 3
+        std_logic_vector(START_ADDRESS + 6) when S_C3Y, -- 6 Y centroide 3
+        std_logic_vector(START_ADDRESS + 7) when S_C4X, -- 7 X centroide 4
+        std_logic_vector(START_ADDRESS + 8) when S_C4Y, -- 8 Y centroide 4
+        std_logic_vector(START_ADDRESS + 9) when S_C5X, -- 9 X centroide 5
+        std_logic_vector(START_ADDRESS + 10) when S_C5Y, -- 10 Y centroide 5
+        std_logic_vector(START_ADDRESS + 11) when S_C6X, -- 11 X centroide 6
+        std_logic_vector(START_ADDRESS + 12) when S_C6Y, -- 12 Y centroide 6
+        std_logic_vector(START_ADDRESS + 13) when S_C7X, -- 13 X centroide 7
+        std_logic_vector(START_ADDRESS + 14) when S_C7Y, -- 14 Y centroide 7
+        std_logic_vector(START_ADDRESS + 15) when S_C8X, -- 15 X centroide 8
+        std_logic_vector(START_ADDRESS + 16) when S_C8Y, -- 16 Y centroide 8
+        std_logic_vector(START_ADDRESS + 19) when S_DONE, -- 19 out mask
+        "----------------" when S_END;
+
     -- Assegnamento dell'output di enable per la RAM
-    o_en <= '0' when (current_state = S_RST or current_state = S_DONE or current_state = S_END) else '1';
+    o_en <= '1' when (current_state /= S_RST and current_state /= S_DONE and current_state /= S_END) else '0';
     
     -- Assegnamento dell'output di scrittura della RAM
     o_we <= '1' when (next_state = S_DONE) else '0';
