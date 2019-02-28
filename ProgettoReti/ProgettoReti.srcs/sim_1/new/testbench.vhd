@@ -711,6 +711,50 @@ architecture projecttbcustom of project_tb_custom is
                             18 => std_logic_vector(to_unsigned( 2 , 8)),
                             others => (others =>'0'));
                     count <= 29;
+                elsif(count = 29) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 207 , 8)), -- 1100'1111
+                            1 => std_logic_vector(to_unsigned( 1 , 8)),
+                            2 => std_logic_vector(to_unsigned( 2 , 8)),
+                            3 => std_logic_vector(to_unsigned( 222 , 8)),
+                            4 => std_logic_vector(to_unsigned( 222 , 8)),
+                            5 => std_logic_vector(to_unsigned( 222 , 8)),
+                            6 => std_logic_vector(to_unsigned( 222 , 8)),
+                            7 => std_logic_vector(to_unsigned( 222 , 8)),
+                            8 => std_logic_vector(to_unsigned( 222 , 8)),
+                            9 => std_logic_vector(to_unsigned( 222 , 8)),
+                            10 => std_logic_vector(to_unsigned( 222 , 8)),
+                            11 => std_logic_vector(to_unsigned( 1 , 8)),
+                            12 => std_logic_vector(to_unsigned( 2 , 8)),
+                            13 => std_logic_vector(to_unsigned( 1 , 8)),
+                            14 => std_logic_vector(to_unsigned( 2 , 8)),
+                            15 => std_logic_vector(to_unsigned( 2 , 8)),
+                            16 => std_logic_vector(to_unsigned( 222 , 8)),
+                            17 => std_logic_vector(to_unsigned( 0 , 8)),
+                            18 => std_logic_vector(to_unsigned( 0 , 8)),
+                            others => (others =>'0'));
+                    count <= 30;
+                elsif(count = 30) then
+                    RAM <= (0 => std_logic_vector(to_unsigned( 53 , 8)), -- 0011'0101
+                            1 => std_logic_vector(to_unsigned( 6 , 8)),
+                            2 => std_logic_vector(to_unsigned( 6 , 8)),
+                            3 => std_logic_vector(to_unsigned( 222 , 8)),
+                            4 => std_logic_vector(to_unsigned( 222 , 8)),
+                            5 => std_logic_vector(to_unsigned( 5 , 8)),
+                            6 => std_logic_vector(to_unsigned( 5 , 8)),
+                            7 => std_logic_vector(to_unsigned( 222 , 8)),
+                            8 => std_logic_vector(to_unsigned( 222 , 8)),
+                            9 => std_logic_vector(to_unsigned( 5 , 8)),
+                            10 => std_logic_vector(to_unsigned( 5 , 8)),
+                            11 => std_logic_vector(to_unsigned( 6 , 8)),
+                            12 => std_logic_vector(to_unsigned( 6 , 8)),
+                            13 => std_logic_vector(to_unsigned( 222 , 8)),
+                            14 => std_logic_vector(to_unsigned( 222 , 8)),
+                            15 => std_logic_vector(to_unsigned( 222 , 8)),
+                            16 => std_logic_vector(to_unsigned( 222 , 8)),
+                            17 => std_logic_vector(to_unsigned( 1 , 8)),
+                            18 => std_logic_vector(to_unsigned( 1 , 8)),
+                            others => (others =>'0'));
+                    count <= 31;
                 end if;
             else
                 if enable_wire = '1' then
@@ -1216,7 +1260,7 @@ architecture projecttbcustom of project_tb_custom is
 		assert RAM(19) = std_logic_vector(to_unsigned(192 , 8)) report "TEST 26 FALLITO" severity failure;
 		
 		
-		-- test 27 (come test 1 ma testiamo velocità massima del testbench)
+		-- test 27 (test strutturale: come test 1 ma testiamo velocità massima del testbench)
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '0';
@@ -1229,7 +1273,7 @@ architecture projecttbcustom of project_tb_custom is
 		-- Maschera di output = 10010001
 		assert RAM(19) = std_logic_vector(to_unsigned(145 , 8)) report "TEST 27 FALLITO" severity failure;
 		
-		-- test 28 (come test 1 ma testiamo velocità massima del testbench)
+		-- test 28 (test strutturale: come test 1 ma testiamo velocità massima del testbench)
 		ram_set <= '1';
 		wait for c_CLOCK_PERIOD;
 		ram_set <= '0';
@@ -1241,6 +1285,35 @@ architecture projecttbcustom of project_tb_custom is
 		
 		-- Maschera di output = 00010001
 		assert RAM(19) = std_logic_vector(to_unsigned(17 , 8)) report "TEST 28 FALLITO" severity failure;
+		
+		-- test 29 (test strutturale: viene mandato un segnale di reset durante l'elaborazione)
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD * 5;
+		
+		-- test 30 (test strutturale: controllo per segnale di reset durante l'elaborazione)
+		wait for 50 ns;
+		wait for c_CLOCK_PERIOD;
+	    tb_start <= '0'; -- reset start per reset
+		tb_rst <= '1';
+		wait for c_CLOCK_PERIOD;
+		tb_rst <= '0';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '1';
+		wait for c_CLOCK_PERIOD;
+		wait until tb_done = '1';
+		wait for c_CLOCK_PERIOD;
+		tb_start <= '0';
+		wait until tb_done = '0';
+		wait for c_CLOCK_PERIOD;
+
+		-- Maschera di output = 00010100
+		assert RAM(19) = std_logic_vector(to_unsigned(20 , 8)) report "TEST 30 FALLITO" severity failure;
 		
 		
 		
