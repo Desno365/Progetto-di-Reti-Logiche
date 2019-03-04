@@ -3,7 +3,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 
 entity project_reti_logiche is
-    generic (START_ADDRESS : unsigned(15 downto 0) := "0000000000000000");
+    generic (
+        START_ADDRESS : unsigned(15 downto 0) := (others => '0')
+    );
     port (
         i_clk         : in  std_logic; -- Clock
         i_start       : in  std_logic; -- Il modulo parte nell'elaborazione quando il segnale START in ingresso viene portato a 1. Il segnale di START rimarrà alto fino a che il segnale di DONE non verrà portato alto.
@@ -48,28 +50,28 @@ architecture projectRetiLogiche of project_reti_logiche is
     
     -- Segnali per registri
     signal next_state, current_state : state_type;
-    signal input_mask_reg : std_logic_vector(7 downto 0) := "11111111";
-    signal input_mask_signal : std_logic_vector(7 downto 0) := "11111111";
-    signal x_coord_reg : std_logic_vector(7 downto 0) := "00000000";
-    signal x_coord_signal : std_logic_vector(7 downto 0) := "00000000";
-    signal y_coord_reg : std_logic_vector(7 downto 0) := "00000000";
-    signal y_coord_signal : std_logic_vector(7 downto 0) := "00000000";
-    signal x_value_reg : std_logic_vector(7 downto 0) := "00000000";
-    signal x_value_signal : std_logic_vector(7 downto 0) := "00000000";
-    signal min_distance_reg : unsigned(8 downto 0) := "111111111"; -- 9 bit perchè massima distanza è 255 + 255 = 510
-    signal min_distance_signal : unsigned(8 downto 0) := "111111111"; -- 9 bit perchè massima distanza è 255 + 255 = 510
-    signal out_mask_tmp_reg :  std_logic_vector(7 downto 0) := "00000000";
-    signal out_mask_tmp_signal :  std_logic_vector(7 downto 0) := "00000000";
+    signal input_mask_reg : std_logic_vector(7 downto 0) := (others => '1');
+    signal input_mask_signal : std_logic_vector(7 downto 0) := (others => '1');
+    signal x_coord_reg : std_logic_vector(7 downto 0) := (others => '0');
+    signal x_coord_signal : std_logic_vector(7 downto 0) := (others => '0');
+    signal y_coord_reg : std_logic_vector(7 downto 0) := (others => '0');
+    signal y_coord_signal : std_logic_vector(7 downto 0) := (others => '0');
+    signal x_value_reg : std_logic_vector(7 downto 0) := (others => '0');
+    signal x_value_signal : std_logic_vector(7 downto 0) := (others => '0');
+    signal min_distance_reg : unsigned(8 downto 0) := (others => '1'); -- 1 bit in più per distanza massima che può andare in overflow
+    signal min_distance_signal : unsigned(8 downto 0) := (others => '1'); -- 1 bit in più per distanza massima che può andare in overflow
+    signal out_mask_tmp_reg :  std_logic_vector(7 downto 0) := (others => '0');
+    signal out_mask_tmp_signal :  std_logic_vector(7 downto 0) := (others => '0');
     signal out_done_tmp_reg :  std_logic := '0'; -- Uso registro per o_done per evitare alee (glitches)
     signal out_done_tmp_signal :  std_logic := '0'; -- Uso registro per o_done per evitare alee (glitches)
     
     -- Segnali interni
     signal is_immediate : std_logic := '0';
     signal next_found_state : state_type := S_DONE;
-    signal distance_x : unsigned(8 downto 0) := "000000000";
-    signal distance_y : unsigned(8 downto 0) := "000000000";
-    signal distance_mask : std_logic_vector(7 downto 0) := "00000000";
-    signal distance_tot : unsigned(8 downto 0) := "111111111"; -- 9 bit perchè massima distanza è 255 + 255 = 510
+    signal distance_x : unsigned(8 downto 0) := (others => '0');
+    signal distance_y : unsigned(8 downto 0) := (others => '0');
+    signal distance_mask : std_logic_vector(7 downto 0) := (others => '0');
+    signal distance_tot : unsigned(8 downto 0) := (others => '1'); -- 1 bit in più per distanza massima che può andare in overflow
     
 begin
     
@@ -82,13 +84,13 @@ begin
         if(i_clk'event and i_clk='1') then
             if(i_rst = '1') then
                 current_state <= S_RST;
-                x_value_reg <= "00000000";
-                min_distance_reg <= "111111111";
-                out_mask_tmp_reg <= "00000000";
+                x_value_reg <= (others => '0');
+                min_distance_reg <= (others => '1');
+                out_mask_tmp_reg <= (others => '0');
                 out_done_tmp_reg <= '0';
-                input_mask_reg <= "11111111";
-                x_coord_reg <= "00000000";
-                y_coord_reg <= "00000000";
+                input_mask_reg <= (others => '1');
+                x_coord_reg <= (others => '0');
+                y_coord_reg <= (others => '0');
             else
                 current_state <= next_state;
                 x_value_reg <= x_value_signal;
@@ -181,7 +183,6 @@ begin
         i_data when S_C7X,
         i_data when S_C8X,
         x_value_reg when others;
-    --x_value_signal <= i_data when (current_state = S_C1X or current_state = S_C2X or current_state = S_C3X or current_state = S_C4X or current_state = S_C5X or current_state = S_C6X or current_state = S_C7X or current_state = S_C8X) else x_value_reg;
     
     -- Elabora la Input Mask e segnala se la maschera di ingresso permette di avere una risposta immediata (cioè se ha 1 oppure 0 bit attivati)
     -- Assegnamenti: is_immediate
@@ -202,9 +203,15 @@ begin
     
     -- Calcolo della distanza totale
     -- Assegnamenti: distance_x, distance_y, distance_tot
-    distance_x <= unsigned(abs(signed('0' & x_value_signal) - signed('0' & x_coord_signal))) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
-    distance_y <= unsigned(abs(signed('0' & i_data) - signed('0' & y_coord_signal))) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "000000000";
-    distance_tot <= (distance_x + distance_y) when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END) else "111111111";
+    distance_x <= unsigned(abs(signed('0' & x_value_signal) - signed('0' & x_coord_signal)))
+                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END)
+                    else (others => '0');
+    distance_y <= unsigned(abs(signed('0' & i_data) - signed('0' & y_coord_signal)))
+                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END)
+                    else (others => '0');
+    distance_tot <= (distance_x + distance_y)
+                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END)
+                    else (others => '1');
 
     -- Assegnamento di distance_mask sulla base di quale centroide si sta calcolando la distanza
     with current_state select distance_mask <=
@@ -236,10 +243,10 @@ begin
         else
             if(current_state = S_INPUT_MASK and is_immediate = '1') then -- se è a risposta immediata possiamo dare dirrettamente la maschera di uscita
                 out_mask_tmp_signal <= input_mask_signal;
-                min_distance_signal <= "111111111";
+                min_distance_signal <= (others => '1');
             elsif(current_state = S_END) then  -- preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset)
-                out_mask_tmp_signal <= "00000000";
-                min_distance_signal <= "111111111";
+                out_mask_tmp_signal <= (others => '0');
+                min_distance_signal <= (others => '1');
             else
                 out_mask_tmp_signal <= out_mask_tmp_reg;
                 min_distance_signal <= min_distance_reg;
@@ -252,8 +259,8 @@ begin
     
     -- Assegnamento di o_address in base allo stato successivo (il dato letto allo stato successivo dipende dallo stato in cui si andrà)
     with next_state select o_address <=
-        "----------------" when S_RST,
-        "----------------" when S_START,
+        (others => '-') when S_RST,
+        (others => '-') when S_START,
         std_logic_vector(START_ADDRESS + 0) when S_INPUT_MASK, -- 0 input mask
         std_logic_vector(START_ADDRESS + 17) when S_COORD_X, -- 17 X del punto da valutare
         std_logic_vector(START_ADDRESS + 18) when S_COORD_y, -- 18 Y del punto da valutare
@@ -274,13 +281,13 @@ begin
         std_logic_vector(START_ADDRESS + 15) when S_C8X, -- 15 X centroide 8
         std_logic_vector(START_ADDRESS + 16) when S_C8Y, -- 16 Y centroide 8
         std_logic_vector(START_ADDRESS + 19) when S_DONE, -- 19 out mask
-        "----------------" when S_END;
+        (others => '-') when S_END;
 
     -- Assegnamento di output che andranno in ingresso alla RAM
     -- Assegnamenti: o_en, o_we, o_data
     o_en <= '1' when (current_state /= S_RST and current_state /= S_DONE and current_state /= S_END) else '0';
     o_we <= '1' when (next_state = S_DONE and current_state /= S_DONE) else '0';
-    o_data <= out_mask_tmp_signal when (next_state = S_DONE and current_state /= S_DONE) else "--------";
+    o_data <= out_mask_tmp_signal when (next_state = S_DONE and current_state /= S_DONE) else (others => '-');
     
     -- Assegnamento di o_done
     out_done_tmp_signal <= '1' when (next_state = S_DONE) else '0';
