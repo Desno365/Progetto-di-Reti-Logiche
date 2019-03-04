@@ -70,12 +70,12 @@ architecture projecttbcustom of project_tb_custom is
 			  i_clk      	=> tb_clk,
 			  i_start       => tb_start,
 			  i_rst      	=> tb_rst,
-			  i_data    	=> mem_o_data, -- l'ouput della memoria Ã¨ dato come ingresso al componente
+			  i_data    	=> mem_o_data, -- l'ouput della memoria è dato come ingresso al componente
 			  o_address  	=> mem_address,
 			  o_done      	=> tb_done,
 			  o_en   		=> enable_wire,
 			  o_we 			=> mem_we,
-			  o_data    	=> mem_i_data -- l'ouput del componente Ã¨ dato come ingresso alla memoria
+			  o_data    	=> mem_i_data -- l'ouput del componente è dato come ingresso alla memoria
 			  );
 
 
