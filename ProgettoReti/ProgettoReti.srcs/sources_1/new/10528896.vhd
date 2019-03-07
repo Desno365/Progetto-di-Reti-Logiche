@@ -7,18 +7,17 @@ entity project_reti_logiche is
         START_ADDRESS : unsigned(15 downto 0) := (others => '0')
     );
     port (
-        i_clk         : in  std_logic; -- Clock
-        i_start       : in  std_logic; -- Il modulo parte nell'elaborazione quando il segnale START in ingresso viene portato a 1. Il segnale di START rimarrà alto fino a che il segnale di DONE non verrà portato alto.
-        i_rst         : in  std_logic; -- Inizializza la macchina pronta per ricevere il primo segnale di start.
-        i_data        : in  std_logic_vector(7 downto 0); -- Segnale che arriva dalla memoria dopo richiesta di lettura.
-        o_address     : out std_logic_vector(15 downto 0); -- Indirizzo da mandare alla memoria, all'indirizzo 0 ho i primi 8 bit, all'indirizzo 1 altri 8 bit e così via.
-        o_done        : out std_logic; -- Notifica la fine dell'elaborazione. Il segnale DONE deve rimanere alto fino a che il segnale di START non è riportato a 0.
-        o_en          : out std_logic; -- Segnale di Enable da mandare alla memoria per poter comunicare (sia in lettura che in scrittura).
-        o_we          : out std_logic; -- Write Enable. 1 per scrivere. 0 per leggere.
-        o_data        : out std_logic_vector (7 downto 0) -- Segnale da mandare alla memoria.
+        i_clk      : in  std_logic; -- Clock
+        i_start    : in  std_logic; -- Il modulo parte nell'elaborazione quando il segnale START in ingresso viene portato a 1. Il segnale di START rimarrà alto fino a che il segnale di DONE non verrà portato alto.
+        i_rst      : in  std_logic; -- Inizializza la macchina pronta per ricevere il primo segnale di start.
+        i_data     : in  std_logic_vector(7 downto 0); -- Segnale che arriva dalla memoria dopo richiesta di lettura.
+        o_address  : out std_logic_vector(15 downto 0); -- Indirizzo da mandare alla memoria, all'indirizzo 0 ho i primi 8 bit, all'indirizzo 1 altri 8 bit e così via.
+        o_done     : out std_logic; -- Notifica la fine dell'elaborazione. Il segnale DONE deve rimanere alto fino a che il segnale di START non è riportato a 0.
+        o_en       : out std_logic; -- Segnale di Enable da mandare alla memoria per poter comunicare (sia in lettura che in scrittura).
+        o_we       : out std_logic; -- Write Enable. 1 per scrivere. 0 per leggere.
+        o_data     : out std_logic_vector (7 downto 0) -- Segnale da mandare alla memoria.
     );
 end project_reti_logiche;
-
 
 architecture projectRetiLogiche of project_reti_logiche is
 
@@ -44,8 +43,7 @@ architecture projectRetiLogiche of project_reti_logiche is
         S_C7Y, -- Lettura ed elaborazione della Y del 7° centroide, calcolo della distanza totale e sua elaborazione.
         S_C8X, -- Lettura ed elaborazione della X del 8° centroide.
         S_C8Y, -- Lettura ed elaborazione della Y del 8° centroide, calcolo della distanza totale e sua elaborazione.
-        S_DONE, -- Stato in cui si segnala che il risultato è stato scritto in RAM, o_done è portato ad '1'.
-        S_END  -- Stato di fine elaborazione: i_start è stato portato a '0' e o_done pure. Il componente è pronto per una successiva elaborazione che avverrà al prossimo segnale di i_start.
+        S_DONE -- Stato in cui si segnala che il risultato è stato scritto in RAM, o_done è portato ad '1'.
     );
     
     -- Segnali per registri
@@ -72,14 +70,14 @@ architecture projectRetiLogiche of project_reti_logiche is
     signal distance_y : unsigned(8 downto 0) := (others => '0');
     signal distance_mask : std_logic_vector(7 downto 0) := (others => '0');
     signal distance_tot : unsigned(8 downto 0) := (others => '1'); -- 1 bit in più per distanza massima che può andare in overflow
-    
+
 begin
-    
+
     --- ###### GESTIONE STATI ######
     
     -- Gestione del clock e del reset
     -- Assegnamenti: current_state, x_value_reg, min_distance_reg, out_mask_tmp_reg, input_mask_reg, x_coord_reg, y_coord_reg
-    register_process: process(i_clk, i_rst, next_state, x_value_signal, min_distance_signal, out_mask_tmp_signal, out_done_tmp_signal, input_mask_signal, x_coord_signal, y_coord_signal)
+    registers_process: process(i_clk, i_rst, next_state, x_value_signal, min_distance_signal, out_mask_tmp_signal, out_done_tmp_signal, input_mask_signal, x_coord_signal, y_coord_signal)
     begin
         if(i_clk'event and i_clk='1') then
             if(i_rst = '1') then
@@ -141,13 +139,7 @@ begin
                 if(i_start = '1') then
                     next_state <= S_DONE;
                 else
-                    next_state <= S_END;
-                end if;
-            when S_END =>
-                if(i_start = '1') then
-                    next_state <= S_START;
-                else
-                    next_state <= S_END;
+                    next_state <= S_RST;
                 end if;
         end case;
     end process;
@@ -204,13 +196,13 @@ begin
     -- Calcolo della distanza totale
     -- Assegnamenti: distance_x, distance_y, distance_tot
     distance_x <= unsigned(abs(signed('0' & x_value_signal) - signed('0' & x_coord_signal)))
-                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END)
+                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE)
                     else (others => '0');
     distance_y <= unsigned(abs(signed('0' & i_data) - signed('0' & y_coord_signal)))
-                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END)
+                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE)
                     else (others => '0');
     distance_tot <= (distance_x + distance_y)
-                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE and current_state /= S_END)
+                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE)
                     else (others => '1');
 
     -- Assegnamento di distance_mask sulla base di quale centroide si sta calcolando la distanza
@@ -244,7 +236,7 @@ begin
             if(current_state = S_INPUT_MASK and is_immediate = '1') then -- se è a risposta immediata possiamo dare dirrettamente la maschera di uscita
                 out_mask_tmp_signal <= input_mask_signal;
                 min_distance_signal <= (others => '1');
-            elsif(current_state = S_END) then  -- preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset)
+            elsif(current_state = S_RST) then  -- preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset esplicito)
                 out_mask_tmp_signal <= (others => '0');
                 min_distance_signal <= (others => '1');
             else
@@ -280,12 +272,11 @@ begin
         std_logic_vector(START_ADDRESS + 14) when S_C7Y, -- 14 Y centroide 7
         std_logic_vector(START_ADDRESS + 15) when S_C8X, -- 15 X centroide 8
         std_logic_vector(START_ADDRESS + 16) when S_C8Y, -- 16 Y centroide 8
-        std_logic_vector(START_ADDRESS + 19) when S_DONE, -- 19 out mask
-        (others => '-') when S_END;
+        std_logic_vector(START_ADDRESS + 19) when S_DONE; -- 19 out mask
 
     -- Assegnamento di output che andranno in ingresso alla RAM
     -- Assegnamenti: o_en, o_we, o_data
-    o_en <= '1' when (current_state /= S_RST and current_state /= S_DONE and current_state /= S_END) else '0';
+    o_en <= '1' when (current_state /= S_RST and current_state /= S_DONE) else '0';
     o_we <= '1' when (next_state = S_DONE and current_state /= S_DONE) else '0';
     o_data <= out_mask_tmp_signal when (next_state = S_DONE and current_state /= S_DONE) else (others => '-');
     
