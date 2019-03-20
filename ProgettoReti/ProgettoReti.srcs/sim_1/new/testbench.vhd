@@ -185,8 +185,8 @@ architecture projecttbcustom of project_tb_custom is
                     count <= 5;
                 elsif(count = 5) then
                     RAM <= (0 => std_logic_vector(to_unsigned( 128 , 8)), -- 1000'0000
-                            1 => std_logic_vector(to_unsigned( 0 , 8)),
-                            2 => std_logic_vector(to_unsigned( 0 , 8)),
+                            1 => std_logic_vector(to_unsigned( 12 , 8)),
+                            2 => std_logic_vector(to_unsigned( 82 , 8)),
                             3 => std_logic_vector(to_unsigned( 111 , 8)),
                             4 => std_logic_vector(to_unsigned( 213 , 8)),
                             5 => std_logic_vector(to_unsigned( 79 , 8)),
@@ -199,10 +199,10 @@ architecture projecttbcustom of project_tb_custom is
                             12 => std_logic_vector(to_unsigned( 254 , 8)),
                             13 => std_logic_vector(to_unsigned( 215 , 8)),
                             14 => std_logic_vector(to_unsigned( 78 , 8)),
-                            15 => std_logic_vector(to_unsigned( 78 , 8)),
-                            16 => std_logic_vector(to_unsigned( 37 , 8)),
-                            17 => std_logic_vector(to_unsigned( 78 , 8)),
-                            18 => std_logic_vector(to_unsigned( 33 , 8)),
+                            15 => std_logic_vector(to_unsigned( 25 , 8)),
+                            16 => std_logic_vector(to_unsigned( 23 , 8)),
+                            17 => std_logic_vector(to_unsigned( 86 , 8)),
+                            18 => std_logic_vector(to_unsigned( 129 , 8)),
                             others => (others =>'0'));
                     count <= 6;
                 elsif(count = 6) then
