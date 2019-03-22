@@ -1,8 +1,18 @@
+-- ####################################
+-- Progetto finale di Reti Logiche
+-- Motta Dennis - Matrcola n. 865833
+-- Anno Accademico 2018/2019
+-- ####################################
+
+
+-- ############ PACKAGE PER COSTANTI ############
 package CONSTANTS is
   constant MEM_BITS : natural := 16; -- Numero di bit per un indirizzo di memoria. 
   constant CELL_BITS : natural := 8; -- Numero di bit in una cella di memoria che si assume equivalente al numero di centroidi da analizzare.
 end package CONSTANTS;
 
+
+-- ############ COMPONENTE ############
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
