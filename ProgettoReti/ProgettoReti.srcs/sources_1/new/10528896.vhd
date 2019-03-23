@@ -55,9 +55,9 @@ architecture projectRetiLogiche of project_reti_logiche is
     signal current_state : state_type;
     signal next_state : state_type;
     
-    -- Segnali per registro del il centroide corrente.
-    signal centroid_num_reg : integer range -1 to CELL_BITS := 0;
-    signal centroid_num_signal : integer range -1 to CELL_BITS := 0;
+    -- Segnali per registro del il centroide corrente. 0 = stati precedenti ai centroidi; 1 = primo centroide; ...; CELL_BITS = ultimo centroide; (CELL_BITS + 1) = stati successivi ai centroidi.
+    signal centroid_num_reg : natural range 0 to CELL_BITS + 1 := 0;
+    signal centroid_num_signal : natural range 0 to CELL_BITS + 1 := 0;
     
     -- Segnali per registro della maschera d'ingresso.
     signal input_mask_reg : std_logic_vector(CELL_BITS - 1 downto 0) := (others => '1');
@@ -88,11 +88,11 @@ architecture projectRetiLogiche of project_reti_logiche is
     signal out_done_tmp_signal :  std_logic := '0';
     
     -- ############ SEGNALI INTERNI DEL COMPONENTE ############
-    signal is_immediate : std_logic := '0'; -- Segnala se la maschera di ingresso permette di avere una risposta immediata (cioè se ha 1 oppure 0 bit attivati).
-    signal next_centroid : integer range -1 to CELL_BITS := 0; -- -1 = stati precedenti ai centroidi; 0 = primo centroide; ...; (CELL_BITS - 1) = ultimo centroide; CELL_BITS = stati successivi ai centroidi.
-    signal distance_x : unsigned(CELL_BITS downto 0) := (others => '0'); -- Distanza sulle ascisse tra centroide e punto da valutare.
-    signal distance_y : unsigned(CELL_BITS downto 0) := (others => '0'); -- Distanza sulle ordinate tra centroide e punto da valutare.
-    signal distance_tot : unsigned(CELL_BITS downto 0) := (others => '1'); -- Distanza totale, che non è altro che la somma di distance_x e distance_y. Usa 1 bit in più per possibile overflow.
+    signal is_immediate : std_logic; -- Segnala se la maschera di ingresso permette di avere una risposta immediata (cioè se ha 1 oppure 0 bit attivati).
+    signal next_centroid : natural range 0 to CELL_BITS + 1; -- 0 = stati precedenti ai centroidi; 1 = primo centroide; ...; CELL_BITS = ultimo centroide; (CELL_BITS + 1) = stati successivi ai centroidi.
+    signal distance_x : unsigned(CELL_BITS downto 0); -- Distanza sulle ascisse tra centroide e punto da valutare.
+    signal distance_y : unsigned(CELL_BITS downto 0); -- Distanza sulle ordinate tra centroide e punto da valutare.
+    signal distance_tot : unsigned(CELL_BITS downto 0); -- Distanza totale, che non è altro che la somma di distance_x e distance_y. Usa 1 bit in più per possibile overflow.
 
 begin
 
@@ -109,7 +109,7 @@ begin
                 x_coord_reg <= (others => '0');
                 y_coord_reg <= (others => '0');
                 x_value_reg <= (others => '0');
-                centroid_num_reg <= -1;
+                centroid_num_reg <= 0;
                 min_distance_reg <= (others => '1');
                 out_mask_tmp_reg <= (others => '0');
                 out_done_tmp_reg <= '0';
@@ -131,10 +131,10 @@ begin
     -- Assegnamenti: next_centroid
     next_centroid_process: process(centroid_num_reg, input_mask_signal)
     begin
-        next_centroid <= CELL_BITS;
-        for i in 0 to CELL_BITS - 1 loop 
-            if(input_mask_signal(i) = '1' and centroid_num_reg < i) then
-                next_centroid <= i; -- sovrascrive CELL_BITS
+        next_centroid <= CELL_BITS + 1;
+        for i in 1 to CELL_BITS loop 
+            if(input_mask_signal(i - 1) = '1' and centroid_num_reg < i) then
+                next_centroid <= i; -- sovrascrive CELL_BITS + 1
                 exit;
             end if;
         end loop;
@@ -165,16 +165,16 @@ begin
                 next_state <= S_CX;
             when S_CX =>
                 if(distance_x > min_distance_reg) then -- Ottimizzazione: se la distanza X è già maggiore della distanza minima è inutile calcolare la distanza Y, passiamo direttamente al centroide successivo.
-                    if(next_centroid = CELL_BITS) then
-                        next_state <= S_DONE;  -- Va allo stato finale, non ci sono altri centroidi da considerare
+                    if(next_centroid = CELL_BITS + 1) then -- Se non ci sono altri centroidi da considerare si può passare allo stato finale, altriemnti si continua.
+                        next_state <= S_DONE;
                     else
-                        next_state <= S_CX; -- Va allo stato di lettura della X del prossimo centroide
+                        next_state <= S_CX;
                     end if;
                 else
                     next_state <= S_CY;
                 end if;
             when S_CY =>
-                if(next_centroid = CELL_BITS) then
+                if(next_centroid = CELL_BITS + 1) then -- Se non ci sono altri centroidi da considerare si può passare allo stato finale, altriemnti si continua.
                     next_state <= S_DONE;
                 else
                     next_state <= S_CX;
@@ -194,10 +194,10 @@ begin
     -- Se il prossimo stato è S_CY bisogna tenere il valore del centroide corrente, specificato dal segnale centroid_num_reg.
     -- Assegnamenti: centroid_num_signal
     with next_state select centroid_num_signal <=
-        -1 when S_RST|S_START|S_INPUT_MASK|S_COORD_X|S_COORD_Y, -- Stati precedenti ai centroidi
+        0 when S_RST|S_START|S_INPUT_MASK|S_COORD_X|S_COORD_Y, -- Stati precedenti ai centroidi
         next_centroid when S_CX, -- Passa al prossimo centroide che verrà letto nello stato S_CX
         centroid_num_reg when S_CY, -- Mantiene lo stesso numero di centroide
-        CELL_BITS when S_DONE; -- Stati successivi ai centroidi
+        CELL_BITS + 1 when S_DONE; -- Stati successivi ai centroidi
     
     
     -- ############ INPUT ############
@@ -213,22 +213,16 @@ begin
     -- Per arrivare al risultato si è utilizzato un famoso "trucchetto": avere un bit attivato significa essere una potenza di 2.
     --- Ed N è una potenza di 2 se (N & N-1) = 0. Dove & rappresenta l'and bit a bit.
     -- Assegnamenti: is_immediate
-    is_immediate <= '1' when (unsigned(input_mask_signal) = 0) or (unsigned(input_mask_signal and std_logic_vector(unsigned(input_mask_signal) - 1)) = 0) else '0';
+    is_immediate <= '1' when (unsigned(input_mask_signal and std_logic_vector(unsigned(input_mask_signal) - 1)) = 0) else '0';
     
     
     -- ############ CALCOLO DISTANZA ED ELABORAZIONE ############
     
-    -- Calcolo della distanza sulle ascisse, sulle ordinate e totale. Si usa anche il valore current_state per calcolare la distanza solo quando necessario.
+    -- Calcolo della distanza sulle ascisse, sulle ordinate e totale.
     -- Assegnamenti: distance_x, distance_y, distance_tot
-    distance_x <= unsigned(abs(signed('0' & x_value_signal) - signed('0' & x_coord_signal)))
-                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE)
-                    else (others => '0');
-    distance_y <= unsigned(abs(signed('0' & i_data) - signed('0' & y_coord_signal)))
-                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE)
-                    else (others => '0');
-    distance_tot <= (distance_x + distance_y)
-                    when (current_state /= S_RST and current_state /= S_START and current_state /= S_DONE)
-                    else (others => '1');
+    distance_x <= unsigned(abs(signed('0' & x_value_signal) - signed('0' & x_coord_signal)));
+    distance_y <= unsigned(abs(signed('0' & i_data) - signed('0' & y_coord_signal)));
+    distance_tot <= (distance_x + distance_y);
 
     -- Controlla se il centroide corrente è a distanza minima usando distance_tot.
     -- Se questa distanza è minore della distanza minima la si assegna a min_distance_signal e si sovrascrive out_mask_tmp_signal,
@@ -236,30 +230,25 @@ begin
     -- Assegnamenti: out_mask_tmp_signal, min_distance_signal
     check_min: process(current_state, centroid_num_reg, input_mask_signal, is_immediate, distance_tot, min_distance_reg, out_mask_tmp_reg)
     begin
-        if(current_state = S_CY) then -- Se siamo in uno stato in cui c'è da calcolare distanza...
-            if(distance_tot < min_distance_reg) then
+        if(current_state = S_CY and distance_tot <= min_distance_reg) then -- Se siamo in uno stato in cui si calcola la distanza e se si ha un centroide a distanza minima...
+            if(distance_tot = min_distance_reg) then -- Nuova distanza minima trovata.
+                out_mask_tmp_signal <= out_mask_tmp_reg;
+                out_mask_tmp_signal(centroid_num_reg - 1) <= '1';
+                min_distance_signal <= min_distance_reg;
+            else -- Centroide a distanza pari alla distanza minima.
                 out_mask_tmp_signal <= (others => '0');
-                out_mask_tmp_signal(centroid_num_reg) <= '1';
+                out_mask_tmp_signal(centroid_num_reg - 1) <= '1';
                 min_distance_signal <= distance_tot;
-            elsif(distance_tot = min_distance_reg) then
-                out_mask_tmp_signal <= out_mask_tmp_reg;
-                out_mask_tmp_signal(centroid_num_reg) <= '1';
-                min_distance_signal <= min_distance_reg;
-            else
-                out_mask_tmp_signal <= out_mask_tmp_reg;
-                min_distance_signal <= min_distance_reg;
             end if;
+        elsif(current_state = S_INPUT_MASK and is_immediate = '1') then -- Se è a risposta immediata possiamo assegnare immediatamente la maschera di uscita.
+            out_mask_tmp_signal <= input_mask_signal;
+            min_distance_signal <= (others => '1');
+        elsif(current_state = S_RST) then  -- Preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset esplicito).
+            out_mask_tmp_signal <= (others => '0');
+            min_distance_signal <= (others => '1');
         else
-            if(current_state = S_INPUT_MASK and is_immediate = '1') then -- Se è a risposta immediata possiamo assegnare immediatamente la maschera di uscita.
-                out_mask_tmp_signal <= input_mask_signal;
-                min_distance_signal <= (others => '1');
-            elsif(current_state = S_RST) then  -- Preset dei segnali per la possibile prossima elaborazione (nel caso non ci sia segnale di reset esplicito).
-                out_mask_tmp_signal <= (others => '0');
-                min_distance_signal <= (others => '1');
-            else
-                out_mask_tmp_signal <= out_mask_tmp_reg;
-                min_distance_signal <= min_distance_reg;
-            end if;
+            out_mask_tmp_signal <= out_mask_tmp_reg;
+            min_distance_signal <= min_distance_reg;
         end if;
     end process;
     
@@ -273,8 +262,8 @@ begin
         std_logic_vector(START_ADDRESS + 0) when S_INPUT_MASK, -- Maschera d'ingresso
         std_logic_vector(START_ADDRESS + (CELL_BITS * 2) + 1) when S_COORD_X, -- X del punto da valutare
         std_logic_vector(START_ADDRESS + (CELL_BITS * 2) + 2) when S_COORD_y, -- Y del punto da valutare
-        std_logic_vector(START_ADDRESS + (centroid_num_signal * 2) + 1) when S_CX, -- X centroidi
-        std_logic_vector(START_ADDRESS + (centroid_num_signal * 2) + 2) when S_CY, -- Y centroidi
+        std_logic_vector(START_ADDRESS + (centroid_num_signal * 2) - 1) when S_CX, -- X centroidi
+        std_logic_vector(START_ADDRESS + (centroid_num_signal * 2)) when S_CY, -- Y centroidi
         std_logic_vector(START_ADDRESS + (CELL_BITS * 2) + 3) when S_DONE; -- Maschera di uscita
 
     -- Assegnamento degli output che andranno in ingresso alla RAM (ram enable; ram write enable; ram data input), ciò viene fatto soltanto negli stati per cui è necessario.
