@@ -6,6 +6,7 @@
 \usepackage{array}
 \usepackage{amsmath} % Math aligning equation
 \usepackage{verbatim} % Command \verb
+\usepackage{titlesec} % Righe di separazione
 
 
 % Tabelle
@@ -59,7 +60,7 @@ Il mio obiettivo per questo progetto, oltre a creare un design funzionante in pr
 Queste scelte progettuali portano anche alcuni svantaggi: con un focus sulla velocità totale le caratteristiche di massima frequenza del clock e di area occupata passano in secondo piano. Non si è scelto un focus sull'area occupata in quanto la FPGA scelta ha centinaia di migliaia di Flip-Flop e LUT. Anche un focus su una maggiore frequenza di clock è stato messo in secondo piano in quanto il progetto ha già un periodo di clock di 100 ns dato da specifica.
 
 \subsection{Funzionamento in sintesi}
-In una breve sintesi introduttiva, si può rappresentare il funzionamento di base del componente attraverso un numero finito di step (e ciò verrà rappresentato architetturalmente attraverso una macchina a stati finiti):
+In una breve sintesi introduttiva, si può rappresentare il funzionamento di base e non ottimizzato del componente attraverso un numero finito di step (e ciò verrà rappresentato architetturalmente attraverso una macchina a stati finiti):
 \begin{enumerate}
     \item Reset e attesa del segnale di start.
     \item Inizializzazione degli output del componente mandando la richiesta di lettura della maschera d'ingresso alla RAM.
@@ -70,8 +71,9 @@ In una breve sintesi introduttiva, si può rappresentare il funzionamento di bas
     \item Lettura della Y del 1° centroide. Se il centroide va considerato per la maschera d'ingresso si calcola la distanza tra il punto da valutare e il centroide. Se questa distanza è minore della distanza minima la si salva e si sovrascrive la maschera di uscita temporanea, se essa invece è uguale alla distanza minima si pone il primo bit a '1' nella maschera di uscita temporanea.
     \item In modo equivalente 2°, 3°, 4°, 5°, 6° e 7° centroide... \addtocounter{enumi}{11}
     \item Lettura e salvataggio della X del 8° centroide.
-    \item Lettura della Y del 8° centroide. Se il centroide va considerato per la maschera d'ingresso si calcola la distanza tra il punto da valutare e il centroide. Se questa distanza è minore della distanza minima la si salva e si sovrascrive la maschera di uscita temporanea, se essa invece è uguale alla distanza minima si pone l'ottavo bit a '1' nella maschera di uscita temporanea.
-    \item Scrittura sulla RAM della maschera di uscita; Segnalazione di fine elaborazione usando il segnale \verb^o_done^; Attesa del segnale di fine (\verb^i_start^ posto a '0') che ci permetterà di ritornare allo step 1 per una possibile successiva elaborazione.
+    \item Lettura della Y del 8° centroide. Se il centroide va considerato per la maschera d'ingresso si calcola la distanza tra il punto da valutare e il centroide. Se questa distanza è minore della distanza minima la si salva e si sovrascrive la maschera di uscita temporanea, se essa invece è uguale alla distanza minima si pone l'ottavo bit a '1' nella maschera di uscita temporanea.\\
+    Infine, avendo raggiunto l'ultimo centroide si scrive sulla RAM la maschera di uscita trovata.
+    \item Segnalazione di fine elaborazione usando il segnale \verb^o_done^; Attesa del segnale di fine (\verb^i_start^ posto a '0') che ci permetterà di ritornare allo step 1 per una possibile successiva elaborazione.
 \end{enumerate}
 
 \subsection{Obiettivo velocità} \label{subsection-ob-vel}
@@ -80,7 +82,7 @@ Una volta raggiunto il limite imposto dalla RAM si sono applicate alcune ottimiz
 \begin{enumerate}
     \item Si evita la lettura sia del valore X che del valore Y di centroidi che sono disattivati nella maschera di ingresso
     \item Viene presentato il risultato immediatamente quando i bit attivati (bit '1') nella maschera di ingresso sono in numero uguale a 0 o 1 (esempio: "00100000"). In questi casi la maschera di output è necessariamente identica alla maschera di ingresso.
-    \item Si passa al centroide successivo (tenendo in considerazione l'ottimizzazione n.1) quando alla lettura del valore X del centroide si trova che la distanza sulle ascisse del centroide col punto da valutare è maggiore della distanza minima fino a quel momento trovata. (esempio: distanza minima = 4; punto da valutare X = 78; centroide X = 12; in questo caso la distanza sulle ascisse è pari a \(78-12=66\) che è già maggiore della distanza minima, si passa quindi al centroide successivo)
+    \item Si passa al centroide successivo (tenendo in considerazione l'ottimizzazione n.1) quando alla lettura del valore X del centroide si trova che la distanza sulle ascisse del centroide col punto da valutare è maggiore della distanza minima fino a quel momento trovata. (esempio: distanza minima = 4; punto da valutare X = 12; centroide X = 78; in questo caso la distanza sulle ascisse è pari a \(78-12=66\) che è già maggiore della distanza minima, si passa quindi al centroide successivo)
 \end{enumerate}
 
 \subsection{Obiettivo codice semplice}
@@ -94,6 +96,9 @@ Infine si sono create due costanti e un generic per rendere il codice facilmente
 
 \subsection{Note aggiuntive sulla specifica}
 Si è assunto che il componente deve essere in grado di eseguire elaborazioni una successiva all'altra anche in assenza di un segnale di reset.
+
+\vspace{4mm}
+\titlerule[0.4pt]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -131,7 +136,7 @@ La FSM non ottimizzata è rappresentata in figura \ref{fig:FSM}, mentre ciò che
         \hline
         \verb^S_CX^ & Lettura e salvataggio delle X dei centroidi. \\
         \hline
-        \verb^S_CY^ & Lettura delle Y dei centroidi. Si calcola la distanza tra il punto da valutare e il centroide, se essa è minore della distanza minima si salva questa nuova distanza e si sovrascrive la maschera di uscita temporanea, se essa invece è uguale alla distanza minima si pone il bit corrispondente a '1' nella maschera di uscita temporanea. \\
+        \verb^S_CY^ & Lettura delle Y dei centroidi. Si calcola la distanza tra il punto da valutare e il centroide, se essa è minore della distanza minima si salva questa nuova distanza e si sovrascrive la maschera di uscita temporanea, se essa invece è uguale alla distanza minima si pone il bit corrispondente a '1' nella maschera di uscita temporanea. Infine, se il centroide corrente è l'ultimo si scrive la maschera di uscita sulla RAM. \rule[-1.0ex]{0pt}{1.0ex} \\
         \hline
         \verb^S_DONE^ & Stato in cui si segnala che il risultato è stato scritto in RAM: \verb^o_done^ è portato ad '1'. Alla ricezione di \verb^i_start^ uguale a '0' si riporta la macchina in \verb^S_RST^ per una possibile successiva elaborazione. \\
         \hline
@@ -174,12 +179,12 @@ N.B.: Si è usata la convenzione che i segnali \verb^*_signal^ rappresentano l'i
 Vediamo ora più in dettaglio lo scopo di ogni funzionalità:
 \begin{itemize}
     \item Assegnamento \verb^x_coord_signal^, assegnamento \verb^x_value_signal^, assegnamento \verb^y_coord_signal^, assegnamento \verb^input_mask_signal^: assegna all'ingresso del relativo registro il giusto segnale, che può essere il segnale \verb^i_data^ oppure il valore di uscita del registro.
-    \item Assegnamento \verb^is_immediate^ : segnala se la maschera di ingresso permette di avere una risposta immediata (cioè se ha 1 oppure 0 bit attivati). Per arrivare al risultato si è utilizzato un famoso "trucchetto": avere un bit attivato significa essere una potenza di 2. Ed N è una potenza di 2 se \((N \& N-1)\) = 0. Dove \& rappresenta l'and bit a bit. Questa funzionalità permette la realizzazione dell'ottimizzazione n.2 della sezione \ref{subsection-ottimiz-fsm} a pagina \pageref{subsection-ottimiz-fsm}.
+    \item Assegnamento \verb^is_immediate^ : segnala se la maschera di ingresso permette di avere una risposta immediata (cioè se ha 1 oppure 0 bit attivati). Per arrivare al risultato si è utilizzato un famoso "trucchetto": avere un bit attivato significa essere una potenza di 2. Ed N è una potenza di 2 se \(N \& (N-1)\) = 0. Dove \& rappresenta l'and bit a bit. Questa funzionalità permette la realizzazione dell'ottimizzazione n.2 della sezione \ref{subsection-ottimiz-fsm} a pagina \pageref{subsection-ottimiz-fsm}.
     \item \verb^next_centroid_process^ : trova il valore del possibile prossimo centroide utilizzando il valore del centroide corrente e la maschera d'ingresso, salta quindi i centroidi non da considerare. Questa funzionalità permette la realizzazione dell'ottimizzazione n.1 della sezione \ref{subsection-ottimiz-fsm} a pagina \pageref{subsection-ottimiz-fsm}.
     \item Assegnamento \verb^distance_x^ : calcola la distanza sulle ascisse.
     \item Assegnamento \verb^distance_y^ : calcola la distanza sulle ordinate.
     \begin{sloppypar}\item Assegnamento \verb^distance_tot^ : calcola la distanza totale, cioè la somma di \verb^distance_x^ e \verb^distance_y^.\end{sloppypar}
-    \item \verb^state_process^ : gestisce lo stato della FSM. Gli ingressi \verb^current_state^ e \verb^i_start^ servono alla FSM di base mentre gli altri segnali permettono le ottimizzazioni specificate nella sezione \ref{subsection-ottimiz-fsm} a pagina \pageref{subsection-ottimiz-fsm}. Il segnale \verb^next_centroid^ permette l'ottimizzazione n.1. Il segnale \verb^is_immediate^ permette l'ottimizzazione n.2. I segnali \verb^distance_x^ e \verb^min_distance_reg^ permettono l'ottimizzazione n.3.
+    \item \verb^state_process^ : gestisce lo stato della FSM. I segnali in ingresso \verb^current_state^ e \verb^i_start^ servono alla FSM di base mentre gli altri segnali permettono le ottimizzazioni specificate nella sezione \ref{subsection-ottimiz-fsm} a pagina \pageref{subsection-ottimiz-fsm}. Il segnale \verb^next_centroid^ permette l'ottimizzazione n.1. Il segnale \verb^is_immediate^ permette l'ottimizzazione n.2. I segnali \verb^distance_x^ e \verb^min_distance_reg^ permettono l'ottimizzazione n.3.
     \item Assegnamento \verb^out_done_tmp_signal^ : assegna all'ingresso del registro il valore da dare a \verb^o_done^ al prossimo ciclo di clock. Il segnale è portato a '1' quando il prossimo stato specificato in \verb^next_state^ è \verb^S_DONE^.
     \item \verb^check_min_process^ : controlla se il centroide corrente è a distanza minima usando \verb^distance_tot^. Se questa distanza è minore della distanza minima la si assegna a \verb^min_distance_signal^ e si sovrascrive \verb^out_mask_tmp_signal^, se essa invece è uguale alla distanza minima si attiva il bit corrispondente al centroide in \verb^out_mask_tmp_signal^.
     \item Assegnamento \verb^centroid_num_signal^ : trova il valore effettivo di quello che sarà il prossimo centroide. Il centroide successivo dipende da \verb^next_state^, cioè lo stato in cui andrà la FSM: se il prossimo stato è \verb^S_CX^ si può passare al centroide successivo, specificato dal segnale \verb^next_centroid^. Se il prossimo stato è \verb^S_CY^ bisogna tenere il valore del centroide corrente, specificato dal segnale \verb^centroid_num_reg^.
@@ -192,6 +197,9 @@ Infine si assegna il valore alle 5 uscite del componente:
     \item Assegnamento \verb^o_en^ : il segnale di enable della RAM viene abilitato per tutti gli stati in cui si ha una lettura o scrittura della RAM.
     \item Assegnamento \verb^o_done^ : il segnale di fine elaborazione è abilitato quando si è nello stato \verb^S_DONE^. Si assegna però a questo segnale \verb^out_done_tmp_reg^, valore di uscita del registro. Ciò viene fatto per evitare glitch su questa uscita.
 \end{itemize}
+
+\vspace{4mm}
+\titlerule[0.4pt]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -212,7 +220,7 @@ Analizzando il "Vivado Synthesis Report" troviamo che sono stati sintetizzati i 
         \hline
         \rule[2ex]{0pt}{0.5ex} 8 & 5 & Maschera di uscita temporanea; maschera d'ingresso; X del punto da valutare; Y del punto da valutare; X del centroide corrente. Tutti questi segnali usano un numero di bit equivalente ai bit in una cella di memoria (\verb^CELL_BITS^). \rule[-1.0ex]{0pt}{1.0ex} \\
         \hline
-        \rule[2ex]{0pt}{0.5ex} 4 & 1 & Indice del centroide corrente. Usa 4 bit perchè si hanno \(2^3\) centroidi e altri due valori che indicano inizio e fine. \rule[-1.0ex]{0pt}{1.0ex} \\
+        \rule[2ex]{0pt}{0.5ex} 4 & 1 & Indice del centroide corrente. Usa 4 bit perchè si hanno 8 (\(2^3\)) centroidi e altri due valori che indicano inizio e fine. \rule[-1.0ex]{0pt}{1.0ex} \\
         \hline
         \rule[2ex]{0pt}{0.5ex} 3 & 1 & Stato della FSM. Usa 3 bit siccome si hanno 8 (\(2^3\)) stati. \rule[-1.0ex]{0pt}{1.0ex} \\
         \hline
@@ -242,8 +250,7 @@ Eseguendo un "Report Utilization" vediamo ora l'area occupata dal design sinteti
 \subsection{Report di timing}
 Analizzando il report di timing si può vedere quanto è veloce in un singolo ciclo di clock il design sintetizzato. Si è ottenuto con il clock della specifica di 100ns un Worst Negative Slack pari a 90,330ns. Da questo valore, sapendo anche il ritardo di riposta della RAM (T\textsubscript{RAM}), possiamo calcolare il periodo minimo applicabile al design creato:
 \begin{align*}
-    &T_{min} = T_{curr} - \mathit{WNS} + T_{RAM} \\
-    &T_{min} = 100ns - 90.330ns + 2ns = 11.670ns
+    &T_{min} = T_{curr} - \mathit{WNS} + T_{RAM} = 100ns - 90.330ns + 2ns = 11.670ns
 \end{align*}
 Il design creato ha quindi una massima frequenza di clock pari a: \( f_{max} = 1/T_{min} \approx 85.6 \mathit{Mhz} \).
 
@@ -253,6 +260,9 @@ Non è quindi presente alcun warning nella versione finale del componente.
 
 \subsection{Note aggiuntive sulla sintesi}
 Si è utilizzato il tool "Vivado 2018.3 WebPACK Edition" impostato con i parametri di default.
+
+\vspace{4mm}
+\titlerule[0.4pt]
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -302,7 +312,7 @@ Come si può vedere in figura \ref{fig:test-bench-0}, il componente impiega solt
 Vediamo cosa succede in questi 11 cicli di clock con cui il componente arriva al risultato finale:
 \renewcommand{\labelenumi}{\Roman{enumi}}
 \begin{enumerate}
-    \item Alla ricezione del segnale di start la FSM del componente passa allo stato \verb^S_START^ qui manda come indirizzo di lettura l'indirizzo 0.
+    \item Alla ricezione del segnale di start la FSM del componente passa allo stato \verb^S_START^, qui manda come indirizzo di lettura l'indirizzo 0.
     \item La FSM passa allo stato \verb^S_INPUT_MASK^. Il componente riceve il contenuto della cella di memoria 0: 185. Questa è la maschera d'ingresso che verrà salvata nel relativo registro. Infine manda come indirizzo di lettura l'indirizzo 17.
     \item La FSM passa allo stato \verb^S_COORD_X^. Il componente riceve il contenuto della cella di memoria 17: 78. Questa è la X del punto da valutare che verrà salvata nel relativo registro. Infine manda come indirizzo di lettura l'indirizzo 18.
     \item La FSM passa allo stato \verb^S_COORD_Y^. Il componente riceve il contenuto della cella di memoria 18: 33. Questa è la Y del punto da valutare che verrà salvata nel relativo registro. Infine manda come indirizzo di lettura l'indirizzo 1.
@@ -315,8 +325,18 @@ Vediamo cosa succede in questi 11 cicli di clock con cui il componente arriva al
     \item La FSM rimane nello stato \verb^S_CX^. Il componente riceve il contenuto della cella di memoria 15: 211. \textbf{Anche qui la distanza sulle ascisse è maggiore della distanza minima}. Abbiamo perciò raggiunto il risultato finale: 0001'0001 (17). Esso viene mandato in scrittura alla RAM nella cella con indirizzo 19.
 \end{enumerate}
 
+\subsubsection{Post-Synthesis Timing Simulation}
+Vediamo per questo test bench il comportamento del componente una volta sintetizzato.
+\begin{figure}[H]
+    \centering
+    \caption{Test bench 0, waveform dei segnali in Post-Synthesis Timing Simulation}
+    \includegraphics[width=1.0\textwidth]{images/test-bench-0-timing.png}
+    \label{fig:test-bench-0-timing}
+\end{figure}
+\noindent I "don't care" spariscono e sono rimpiazzati da valori reali, questi valori sono ininfluenti e sono dati dalle ottimizzazioni fatte dal tool di sintesi. Inoltre sono comparse alcune alee statiche: di tipo 0 sul segnale \verb^o_we^ e di tipo 1 sul segnale \verb^o_en^. Queste alee sono ininfluenti per il risultato in quanto questi segnali sono usati in modo sincrono: conta soltanto il loro valore nell'intorno del fronte di salita del clock.
+
 \subsection{Test Bench 1 (un solo bit attivato nella maschera d'ingresso)}
-Con questo test bench si è voluto testare l'ottimizzazione n.2 della sezione \ref{subsection-ob-vel} a pagina \pageref{subsection-ob-vel}. Si è testato in realtà tutti i 9 casi possibili (0 bit attivati, 1 bit attivato in 8 possibili posizioni) ma vediamo soltanto uno di questi casi in quanto poi gli altri sono equivalenti.
+Con questo test bench si è voluto testare l'ottimizzazione n.2 della sezione \ref{subsection-ob-vel} a pagina \pageref{subsection-ob-vel}. Si è testato in realtà tutti i 9 casi possibili (zero bit attivati, un bit attivato in 8 possibili posizioni) ma vediamo soltanto uno di questi casi in quanto poi gli altri sono equivalenti.
 
 \subsubsection{Dati del test bench}
 \begin{table}[H]
@@ -363,11 +383,13 @@ Sono stati creati altri test bench per testare alcuni casi limite o per controll
     \label{fig:altri-test-bench}
 \end{figure}
 
+\vspace{4mm}
+\titlerule[0.4pt]
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% CONCLUSIONE %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\pagebreak
 \section{Conclusione}
 Riassumendo si è creato un design con queste caratteristiche:
 \begin{itemize}
