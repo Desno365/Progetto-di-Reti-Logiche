@@ -45,7 +45,7 @@ architecture projectRetiLogiche of project_reti_logiche is
         S_COORD_X,      -- Stato in cui il componente legge e salva in un registro la X del punto da valutare che gli è arrivata da memoria.
         S_COORD_Y,      -- Stato in cui il componente legge e salva in un registro la Y del punto da valutare che gli è arrivata da memoria.
         S_CX,           -- Lettura e salvataggio delle X dei centroidi.
-        S_CY,           -- Lettura delle Y dei centroidi. Si calcola la distanza tra il punto da valutare e il centroide con conseguente elaborazione.
+        S_CY,           -- Lettura delle Y dei centroidi. Si calcola la distanza tra il punto da valutare e il centroide con conseguente elaborazione. Infine, se il centroide corrente è l'ultimo si scrive la maschera di uscita sulla RAM.
         S_DONE          -- Stato in cui si segnala che il risultato è stato scritto in RAM: o_done è portato ad '1'.
     );
     
